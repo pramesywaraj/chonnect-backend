@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 export interface ConfigType {
   database: TypeOrmModuleOptions;
