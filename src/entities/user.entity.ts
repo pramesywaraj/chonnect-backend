@@ -3,11 +3,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RoomUser } from './room-user.entity';
+import { Message } from './message.entity';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   @Expose()
@@ -35,4 +39,10 @@ export class User {
   @UpdateDateColumn()
   @Expose()
   updated_at: Date;
+
+  @OneToMany(() => RoomUser, (roomUser) => roomUser.user)
+  userRooms: RoomUser[];
+
+  @OneToMany(() => Message, (message) => message.sender)
+  messages: Message[];
 }
