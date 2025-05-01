@@ -3,7 +3,7 @@ import { User } from './user.entity';
 import { Message } from './message.entity';
 
 @Entity('message_status')
-@Unique(['message', 'user'])
+@Unique(['message', 'sender'])
 export class MessageStatus {
   @PrimaryGeneratedColumn('uuid')
   id: string;
