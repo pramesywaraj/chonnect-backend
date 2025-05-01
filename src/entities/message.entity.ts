@@ -1,6 +1,14 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Room } from './room.entity';
+import { MessageStatus } from './message-status.entity';
 
 @Entity('messages')
 export class Message {
@@ -15,6 +23,9 @@ export class Message {
 
   @ManyToOne(() => Room, (room) => room.messages, { onDelete: 'CASCADE' })
   room: Room;
+
+  @OneToMany(() => MessageStatus, (status) => status.message)
+  status: MessageStatus;
 
   @CreateDateColumn()
   created_at: Date;

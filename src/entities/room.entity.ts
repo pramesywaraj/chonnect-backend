@@ -1,5 +1,13 @@
 import { Expose } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { RoomUser } from './room-user.entity';
 import { Message } from './message.entity';
 
@@ -19,8 +27,12 @@ export class Room {
   created_at: Date;
 
   @OneToMany(() => RoomUser, (roomUser) => roomUser.room)
-  users: RoomUser[];
+  room_user: RoomUser[];
 
   @OneToMany(() => Message, (message) => message.room)
   messages: Message[];
+
+  @ManyToOne(() => Message, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn()
+  last_message: Message;
 }

@@ -3,13 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { RoomUser } from './room-user.entity';
 import { Message } from './message.entity';
+import { MessageStatus } from './message-status.entity';
 
 @Entity('users')
 export class User {
@@ -28,6 +28,9 @@ export class User {
   @Column({ type: 'varchar' })
   password: string;
 
+  @Column({ type: 'varchar' })
+  description: string;
+
   @Column({ nullable: true, type: 'varchar' })
   @Expose()
   profile_image: string;
@@ -41,8 +44,11 @@ export class User {
   updated_at: Date;
 
   @OneToMany(() => RoomUser, (roomUser) => roomUser.user)
-  userRooms: RoomUser[];
+  room_user: RoomUser[];
 
   @OneToMany(() => Message, (message) => message.sender)
   messages: Message[];
+
+  @OneToMany(() => MessageStatus, (status) => status.sender)
+  message_status: MessageStatus[];
 }
