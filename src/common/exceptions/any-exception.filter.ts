@@ -1,17 +1,10 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Inject,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { CustomLogger } from '../logger/custom-logger.service';
 
 @Catch()
 export default class AnyExceptionFilter implements ExceptionFilter {
-  constructor(@Inject('CustomLogger') private readonly logger: CustomLogger) {}
+  constructor(private readonly logger: CustomLogger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const context = host.switchToHttp();
