@@ -1,6 +1,7 @@
-import { LoggerService } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { RequestContext } from '../request-context/request-context.service';
 
+@Injectable()
 export class CustomLogger implements LoggerService {
   private _format(message: string, context?: string): string {
     const traceId = RequestContext.get('traceId');

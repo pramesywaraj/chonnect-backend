@@ -6,6 +6,10 @@ import { TypedConfigService } from './typed-config.service';
 import { typeOrmConfig } from './database.config';
 import { appConfigSchema } from './config.types';
 import { RequestContextMiddleware } from './request-context/request-context.middleware';
+import { CustomLogger } from './logger/custom-logger.service';
+import { APP_FILTER } from '@nestjs/core';
+import HttpExceptionFilter from './exceptions/http-exception.filter';
+import AnyExceptionFilter from './exceptions/any-exception.filter';
 
 @Global()
 @Module({
@@ -25,6 +29,17 @@ import { RequestContextMiddleware } from './request-context/request-context.midd
       load: [typeOrmConfig],
       validationSchema: appConfigSchema,
     }),
+  ],
+  providers: [
+    CustomLogger,
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AnyExceptionFilter,
+    },
   ],
 })
 export class CommonModule implements NestModule {
