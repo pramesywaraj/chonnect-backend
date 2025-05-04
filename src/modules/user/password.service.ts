@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 
-export class PasswordService {
+export default class PasswordService {
   private readonly SALT_ROUND = 10;
 
   public async hash(password: string): Promise<string> {
