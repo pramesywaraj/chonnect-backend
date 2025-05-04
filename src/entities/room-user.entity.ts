@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Room } from './room.entity';
 import { User } from './user.entity';
-import { UserRoles } from 'src/modules/user/role.enum';
+import { UserRoles } from '../modules/user/enums/role.enum';
 
 @Entity('room_users')
 @Unique(['room', 'user']) // to prevent duplicate over room and user
