@@ -12,6 +12,8 @@ import { CustomLogger } from './logger/custom-logger.service';
 import HttpExceptionFilter from './exceptions/http-exception.filter';
 import AnyExceptionFilter from './exceptions/any-exception.filter';
 
+import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
+
 @Global()
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import AnyExceptionFilter from './exceptions/any-exception.filter';
         const dbConfig = configService.get<TypeOrmModuleOptions>('database');
         return {
           ...dbConfig,
+          entities: [User, Message, MessageStatus, Room, RoomUser],
         };
       },
     }),
@@ -43,7 +46,7 @@ import AnyExceptionFilter from './exceptions/any-exception.filter';
     },
   ],
 })
-export class CommonModule implements NestModule {
+export default class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(RequestContextMiddleware).forRoutes('*path');
   }
