@@ -6,11 +6,13 @@ import { APP_FILTER } from '@nestjs/core';
 import { TypedConfigService } from './typed-config.service';
 import { typeOrmConfig } from './database.config';
 import { appConfigSchema } from './config.types';
-import { RequestContextMiddleware } from './request-context/request-context.middleware';
 import { CustomLogger } from './logger/custom-logger.service';
 
 import HttpExceptionFilter from './exceptions/http-exception.filter';
 import AnyExceptionFilter from './exceptions/any-exception.filter';
+
+import LoggingMiddleware from './middlewares/logging.middleware';
+import { RequestContextMiddleware } from './request-context/request-context.middleware';
 
 import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
 
@@ -48,6 +50,6 @@ import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
 })
 export default class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestContextMiddleware).forRoutes('*path');
+    consumer.apply(RequestContextMiddleware, LoggingMiddleware).forRoutes('*path');
   }
 }
