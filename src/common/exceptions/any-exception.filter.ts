@@ -7,6 +7,12 @@ export default class AnyExceptionFilter implements ExceptionFilter {
   constructor(private readonly logger: CustomLogger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
+    if (exception instanceof HttpException) {
+      // if the exception is known HTTP exception
+      // then it will passed to the http-exception.filter.ts
+      throw exception;
+    }
+
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();

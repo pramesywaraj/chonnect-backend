@@ -16,11 +16,15 @@ export default class HttpExceptionFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
+
     const status = exception.getStatus();
     const errorResponse = exception.getResponse() as HttpErrorResponse;
 
+    const responsePayload =
+      typeof errorResponse === 'string' ? { title: errorResponse } : errorResponse;
+
     this.logger.error(
-      `[${request.method}] ${request.url} -> ${status} ${errorResponse?.title ?? ''}`,
+      `[${request.method}] ${request.url} -> ${status} ${responsePayload?.title ?? ''}`,
       exception.stack,
       'HttpExceptionFilter',
     );
