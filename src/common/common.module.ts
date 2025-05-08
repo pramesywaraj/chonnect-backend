@@ -10,8 +10,7 @@ import { authConfig } from './config/auth.config';
 
 import { CustomLogger } from './logger/custom-logger.service';
 
-import HttpExceptionFilter from './exceptions/http-exception.filter';
-import AnyExceptionFilter from './exceptions/any-exception.filter';
+import CustomExceptionFilter from './exceptions/custom-exception.filter';
 
 import LoggingMiddleware from './middlewares/logging.middleware';
 import { RequestContextMiddleware } from './request-context/request-context.middleware';
@@ -42,11 +41,7 @@ import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
     CustomLogger,
     {
       provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
-    },
-    {
-      provide: APP_FILTER,
-      useClass: AnyExceptionFilter,
+      useClass: CustomExceptionFilter,
     },
   ],
 })

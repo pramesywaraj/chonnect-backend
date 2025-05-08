@@ -9,8 +9,8 @@ export default class BadRequestError extends HttpException {
     super(
       {
         title: 'Bad Request',
-        status: HttpStatus.BAD_REQUEST,
-        detail: 'The request could not be processed. Please check your input and try again!',
+        status_code: HttpStatus.BAD_REQUEST,
+        message: 'The request could not be processed. Please check your input and try again!',
         errors: messages.map((message) => ({ message })),
       },
       HttpStatus.BAD_REQUEST,
