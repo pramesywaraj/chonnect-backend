@@ -4,8 +4,10 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { APP_FILTER } from '@nestjs/core';
 
 import { TypedConfigService } from './typed-config.service';
-import { typeOrmConfig } from './database.config';
+import { typeOrmConfig } from './config/database.config';
 import { appConfigSchema } from './config.types';
+import { authConfig } from './config/auth.config';
+
 import { CustomLogger } from './logger/custom-logger.service';
 
 import HttpExceptionFilter from './exceptions/http-exception.filter';
@@ -32,7 +34,7 @@ import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeOrmConfig],
+      load: [typeOrmConfig, authConfig],
       validationSchema: appConfigSchema,
     }),
   ],
