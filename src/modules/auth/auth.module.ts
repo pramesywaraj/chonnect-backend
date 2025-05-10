@@ -16,9 +16,9 @@ import UserModule from '../user/user.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: TypedConfigService) => ({
-        secret: config.get<AuthConfig>('auth')?.jwt.secret,
+        secret: config.get<AuthConfig>('auth')?.jwt.access_token.secret,
         signOptions: {
-          expiresIn: config.get<AuthConfig>('auth')?.jwt?.expires_in,
+          expiresIn: config.get<AuthConfig>('auth')?.jwt?.access_token.expires_in,
         },
       }),
     }),
