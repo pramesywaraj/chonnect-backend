@@ -44,9 +44,6 @@ export class User {
   @Expose()
   updated_at: Date;
 
-  @Column({ nullable: true })
-  refresh_token?: string;
-
   @OneToMany(() => RoomUser, (roomUser) => roomUser.user)
   room_user: RoomUser[];
 
