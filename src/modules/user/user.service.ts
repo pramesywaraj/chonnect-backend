@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
-import { CreateUserDto } from './dtos/create-user.dto';
+
+import { CreateUserDto, UpdateUserDto } from './dtos';
+
 import PasswordService from './password.service';
 
 @Injectable()
@@ -18,6 +20,10 @@ export default class UserService {
     return await this.userRepository.findOneBy({ email });
   }
 
+  public async findOneById(userId: string): Promise<User | null> {
+    return await this.userRepository.findOneBy({ id: userId });
+  }
+
   public async createUser(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await this.passwordService.hash(createUserDto.password);
 
@@ -27,5 +33,19 @@ export default class UserService {
     });
 
     return await this.userRepository.save(newUser);
+  }
+
+  public async updateUser(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
+    if (updateUserDto.password)
+      updateUserDto.password = await this.passwordService.hash(updateUserDto.password);
+
+    await this.userRepository.update(userId, updateUserDto);
+
+    const updatedUser = await this.findOneById(userId);
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found after update');
+    }
+
+    return updatedUser;
   }
 }
