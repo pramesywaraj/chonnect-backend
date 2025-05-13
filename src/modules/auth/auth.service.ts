@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import UserService from '../user/user.service';
@@ -8,8 +8,11 @@ import { User } from '../../entities/user.entity';
 
 import { throwHttpException } from '../../common/exceptions/utils';
 
-import LoginRequestDto from './dtos/login-request.dto';
 import { CreateUserDto } from '../user/dtos/create-user.dto';
+import { ConfigType } from '@nestjs/config';
+import { refreshJwtConfig } from 'src/common/config/auth.config';
+import { LoginResponse } from './responses/login.response';
+import AuthJwtPayload from './types/jwt-payload.types';
 
 @Injectable()
 export default class AuthService {
@@ -17,11 +20,33 @@ export default class AuthService {
     private readonly userService: UserService,
     private readonly passwordService: PasswordService,
     private readonly jwtService: JwtService,
+
+    @Inject(refreshJwtConfig.KEY)
+    private readonly refreshJwtConfiguration: ConfigType<typeof refreshJwtConfig>,
   ) {}
 
-  private generateToken(user: User) {
-    const payload = { user_id: user.id, email: user.email };
-    return this.jwtService.sign(payload);
+  private async generateTokens(
+    user: User,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const payload: AuthJwtPayload = { sub: user.id, email: user.email };
+
+    const [access_token, refresh_token] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, this.refreshJwtConfiguration),
+    ]);
+
+    return { access_token, refresh_token };
+  }
+
+  public async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) throw new UnauthorizedException('User not found, please register the email first!');
+
+    const isVerified = await this.passwordService.verify(password, user.password);
+    if (!isVerified)
+      throw new UnauthorizedException('Invalid password, please make sure again your password!');
+
+    return user;
   }
 
   public async register(createUserDto: CreateUserDto): Promise<User> {
@@ -42,16 +67,9 @@ export default class AuthService {
     return user;
   }
 
-  public async login(loginRequestDto: LoginRequestDto): Promise<string> {
-    const { email, password } = loginRequestDto;
-    const user = await this.userService.findOneByEmail(email);
+  public async login(user: User): Promise<LoginResponse> {
+    const tokens = await this.generateTokens(user);
 
-    if (!user) throw new UnauthorizedException('User not found, please register the email first!');
-
-    const isPasswordVerified = await this.passwordService.verify(password, user.password);
-    if (!isPasswordVerified)
-      throw new UnauthorizedException('Invalid password, please make sure again your password!');
-
-    return this.generateToken(user);
+    return new LoginResponse(tokens);
   }
 }
