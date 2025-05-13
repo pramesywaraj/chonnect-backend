@@ -13,6 +13,7 @@ import { ConfigType } from '@nestjs/config';
 import { refreshJwtConfig } from 'src/common/config/auth.config';
 import { LoginResponse } from './responses/login.response';
 import AuthJwtPayload from './types/jwt-payload.types';
+import { RefreshAccessResponse } from './responses/refresh-access.response';
 
 @Injectable()
 export default class AuthService {
@@ -36,6 +37,12 @@ export default class AuthService {
     ]);
 
     return { access_token, refresh_token };
+  }
+
+  public async refreshAccessToken(payload: AuthJwtPayload): Promise<RefreshAccessResponse> {
+    const access_token = await this.jwtService.signAsync(payload);
+
+    return new RefreshAccessResponse({ access_token });
   }
 
   public async validateUser(email: string, password: string): Promise<User> {
