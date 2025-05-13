@@ -1,29 +1,24 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
-import { AuthConfig } from '../../common/config/auth.config';
-import { TypedConfigService } from '../../common/typed-config.service';
+import { jwtConfig, refreshJwtConfig } from '../../common/config/auth.config';
 
 import AuthService from './auth.service';
 import AuthController from './auth.controller';
 import UserModule from '../user/user.module';
 
+import { LocalStrategy, JwtStrategy } from './strategies';
+import RefreshJwtStrategy from './strategies/refresh-jwt.strategy';
+
 @Module({
   imports: [
     UserModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: TypedConfigService) => ({
-        secret: config.get<AuthConfig>('auth')?.jwt.access_token.secret,
-        signOptions: {
-          expiresIn: config.get<AuthConfig>('auth')?.jwt?.access_token.expires_in,
-        },
-      }),
-    }),
+    JwtModule.registerAsync(jwtConfig.asProvider()),
+    ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(refreshJwtConfig),
   ],
-  providers: [AuthService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshJwtStrategy],
   controllers: [AuthController],
 })
 export default class AuthModule {}

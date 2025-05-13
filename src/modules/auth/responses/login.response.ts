@@ -7,4 +7,7 @@ export class LoginResponse {
 
   @Expose()
   access_token: string;
+
+  @Expose()
+  refresh_token: string;
 }
