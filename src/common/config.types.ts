@@ -1,10 +1,10 @@
+import { JwtModuleOptions, JwtSignOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 
-import { AuthConfig } from './config/auth.config';
-
 export interface ConfigType {
-  auth: AuthConfig;
+  auth_jwt: JwtModuleOptions;
+  auth_jwt_refresh: JwtSignOptions;
   database: TypeOrmModuleOptions;
 }
 

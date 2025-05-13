@@ -1,12 +1,11 @@
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_FILTER } from '@nestjs/core';
 
 import { TypedConfigService } from './typed-config.service';
 import { typeOrmConfig } from './config/database.config';
 import { appConfigSchema } from './config.types';
-import { authConfig } from './config/auth.config';
 
 import { CustomLogger } from './logger/custom-logger.service';
 
@@ -24,7 +23,7 @@ import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: TypedConfigService) => {
-        const dbConfig = configService.get<TypeOrmModuleOptions>('database');
+        const dbConfig = configService.get<TypedConfigService>('database');
         return {
           ...dbConfig,
           entities: [User, Message, MessageStatus, Room, RoomUser],
@@ -33,7 +32,7 @@ import { User, Message, MessageStatus, Room, RoomUser } from '../entities';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeOrmConfig, authConfig],
+      load: [typeOrmConfig],
       validationSchema: appConfigSchema,
     }),
   ],
