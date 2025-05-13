@@ -1,5 +1,6 @@
 import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigType } from '@nestjs/config';
 
 import UserService from '../user/user.service';
 import PasswordService from '../user/password.service';
@@ -9,11 +10,10 @@ import { User } from '../../entities/user.entity';
 import { throwHttpException } from '../../common/exceptions/utils';
 
 import { CreateUserDto } from '../user/dtos/create-user.dto';
-import { ConfigType } from '@nestjs/config';
 import { refreshJwtConfig } from 'src/common/config/auth.config';
 import { LoginResponse } from './responses/login.response';
-import AuthJwtPayload from './types/jwt-payload.types';
 import { RefreshAccessResponse } from './responses/refresh-access.response';
+import { AuthJwtPayload } from '../../types/auth.type';
 
 @Injectable()
 export default class AuthService {
@@ -39,7 +39,8 @@ export default class AuthService {
     return { access_token, refresh_token };
   }
 
-  public async refreshAccessToken(payload: AuthJwtPayload): Promise<RefreshAccessResponse> {
+  public async refreshAccessToken(userId: string, email: string): Promise<RefreshAccessResponse> {
+    const payload: AuthJwtPayload = { sub: userId, email };
     const access_token = await this.jwtService.signAsync(payload);
 
     return new RefreshAccessResponse({ access_token });

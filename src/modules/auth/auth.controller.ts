@@ -10,8 +10,10 @@ import { LocalAuthGuard } from './guards';
 import { AuthUser } from './decorators/auth-user.decorator';
 import RefreshJwtAuthGuard from './guards/refresh-jwt-auth.guard';
 import { RefreshAccessResponse } from './responses/refresh-access.response';
-import AuthJwtPayload from './types/jwt-payload.types';
+import { Public } from './decorators/public.decorator';
+import { AuthRequest } from '../../types/auth.type';
 
+@Public()
 @Controller('auth')
 export default class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,7 +36,7 @@ export default class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshJwtAuthGuard)
   @Post('refresh')
-  refresh(@Request() req: AuthJwtPayload): Promise<RefreshAccessResponse> {
-    return this.authService.refreshAccessToken(req);
+  refresh(@Request() req: AuthRequest): Promise<RefreshAccessResponse> {
+    return this.authService.refreshAccessToken(req.user.sub, req.user.email);
   }
 }
