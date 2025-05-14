@@ -1,6 +1,7 @@
 import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigType } from '@nestjs/config';
+import * as argon2 from 'argon2';
 
 import UserService from '../user/user.service';
 import PasswordService from '../user/password.service';
@@ -27,9 +28,10 @@ export default class AuthService {
   ) {}
 
   private async generateTokens(
-    user: User,
+    userId: string,
+    email: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    const payload: AuthJwtPayload = { sub: user.id, email: user.email };
+    const payload: AuthJwtPayload = { sub: userId, email };
 
     const [access_token, refresh_token] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -40,10 +42,12 @@ export default class AuthService {
   }
 
   public async refreshAccessToken(userId: string, email: string): Promise<RefreshAccessResponse> {
-    const payload: AuthJwtPayload = { sub: userId, email };
-    const access_token = await this.jwtService.signAsync(payload);
+    const tokens = await this.generateTokens(userId, email);
+    const hashedRefreshToken = await argon2.hash(tokens.refresh_token);
 
-    return new RefreshAccessResponse({ access_token });
+    await this.userService.updateRefreshToken(userId, hashedRefreshToken);
+
+    return new LoginResponse(tokens);
   }
 
   public async validateUser(email: string, password: string): Promise<User> {
@@ -55,6 +59,16 @@ export default class AuthService {
       throw new UnauthorizedException('Invalid password, please make sure again your password!');
 
     return user;
+  }
+
+  public async validateRefreshToken(userId: string, refreshToken: string): Promise<AuthJwtPayload> {
+    const user = await this.userService.findOneById(userId);
+    if (!user || !user.refresh_token) throw new UnauthorizedException('Invalid refresh token!');
+
+    const isRefreshTokenMatch = await argon2.verify(user.refresh_token, refreshToken);
+    if (!isRefreshTokenMatch) throw new UnauthorizedException('Invalid refresh token!');
+
+    return { sub: user.id, email: user.email };
   }
 
   public async register(createUserDto: CreateUserDto): Promise<User> {
@@ -76,8 +90,15 @@ export default class AuthService {
   }
 
   public async login(user: User): Promise<LoginResponse> {
-    const tokens = await this.generateTokens(user);
+    const tokens = await this.generateTokens(user.id, user.email);
+    const hashedRefreshToken = await argon2.hash(tokens.refresh_token);
+
+    await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
 
     return new LoginResponse(tokens);
+  }
+
+  public async logout(userId: string): Promise<void> {
+    await this.userService.updateRefreshToken(userId, null);
   }
 }

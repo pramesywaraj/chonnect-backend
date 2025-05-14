@@ -12,18 +12,20 @@ import RefreshJwtAuthGuard from './guards/refresh-jwt-auth.guard';
 import { RefreshAccessResponse } from './responses/refresh-access.response';
 import { Public } from './decorators/public.decorator';
 import { AuthRequest } from '../../types/auth.type';
+import DefaultResponse from '../../common/responses/default.response';
 
-@Public()
 @Controller('auth')
 export default class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto): Promise<User> {
     const user = await this.authService.register(createUserDto);
     return user;
   }
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -38,5 +40,16 @@ export default class AuthController {
   @Post('refresh')
   refresh(@Request() req: AuthRequest): Promise<RefreshAccessResponse> {
     return this.authService.refreshAccessToken(req.user.sub, req.user.email);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(@Request() req: AuthRequest): Promise<DefaultResponse> {
+    await this.authService.logout(req.user.sub);
+
+    return new DefaultResponse({
+      status_code: HttpStatus.OK,
+      message: 'User has been successfully logged out',
+    });
   }
 }

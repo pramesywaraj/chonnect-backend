@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -39,7 +39,7 @@ export default class UserService {
     if (updateUserDto.password)
       updateUserDto.password = await this.passwordService.hash(updateUserDto.password);
 
-    await this.userRepository.update(userId, updateUserDto);
+    await this.userRepository.update({ id: userId }, updateUserDto);
 
     const updatedUser = await this.findOneById(userId);
     if (!updatedUser) {
@@ -47,5 +47,14 @@ export default class UserService {
     }
 
     return updatedUser;
+  }
+
+  public async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
+    const result = await this.userRepository.update(
+      { id: userId },
+      { refresh_token: refreshToken },
+    );
+
+    if (result.affected === 0) throw new NotFoundException(`User with ID ${userId} not found`);
   }
 }
