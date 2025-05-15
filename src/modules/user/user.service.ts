@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
 
@@ -22,6 +22,12 @@ export default class UserService {
 
   public async findOneById(userId: string): Promise<User | null> {
     return await this.userRepository.findOneBy({ id: userId });
+  }
+
+  public async findByIds(userIds: string[]): Promise<User[]> {
+    return await this.userRepository.findBy({
+      id: In(userIds),
+    });
   }
 
   public async createUser(createUserDto: CreateUserDto): Promise<User> {

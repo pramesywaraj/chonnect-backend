@@ -17,8 +17,8 @@ export class Room {
   @Expose()
   id: string;
 
-  @Column()
-  name: string;
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  name: string | null;
 
   @Column({ default: false })
   is_group: boolean;
