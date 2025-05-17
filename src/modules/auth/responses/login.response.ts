@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class LoginResponse {
+export default class LoginResponse {
   constructor(partial?: Partial<LoginResponse>) {
     Object.assign(this, partial);
   }

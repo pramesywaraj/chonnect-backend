@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-export class RefreshAccessResponse {
+export default class RefreshAccessResponse {
   constructor(partial?: Partial<RefreshAccessResponse>) {
     Object.assign(this, partial);
   }
