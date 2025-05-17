@@ -5,51 +5,47 @@ import { User } from '../../entities/user.entity';
 
 import { CreateUserDto } from '../user/dtos/create-user.dto';
 
-import { LoginResponse } from './responses/login.response';
-import { LocalAuthGuard } from './guards';
+import { LoginResponse, RefreshAccessResponse } from './responses';
+import { LocalAuthGuard, RefreshJwtAuthGuard } from './guards';
+
 import { AuthUser } from './decorators/auth-user.decorator';
-import RefreshJwtAuthGuard from './guards/refresh-jwt-auth.guard';
-import { RefreshAccessResponse } from './responses/refresh-access.response';
 import { Public } from './decorators/public.decorator';
+import { SuccessMessage } from '../../common/decorators';
+
 import { AuthRequest } from '../../types/auth.type';
-import DefaultResponse from '../../common/responses/default.response';
 
 @Controller('auth')
 export default class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @SuccessMessage('User successfully registered')
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto): Promise<User> {
-    const user = await this.authService.register(createUserDto);
-    return user;
+    return this.authService.register(createUserDto);
   }
 
   @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalAuthGuard)
+  @SuccessMessage('Welcome to Chonnect!')
   @Post('login')
-  async login(@AuthUser() user: User): Promise<LoginResponse> {
-    const tokens = await this.authService.login(user);
-
-    return new LoginResponse({ ...tokens });
+  login(@AuthUser() user: User): Promise<LoginResponse> {
+    return this.authService.login(user);
   }
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshJwtAuthGuard)
+  @SuccessMessage('Token successfully refreshed')
   @Post('refresh')
   refresh(@Request() req: AuthRequest): Promise<RefreshAccessResponse> {
     return this.authService.refreshAccessToken(req.user.sub, req.user.email);
   }
 
   @HttpCode(HttpStatus.OK)
+  @SuccessMessage('User has been successfully logged out, good bye')
   @Post('logout')
-  async logout(@Request() req: AuthRequest): Promise<DefaultResponse> {
-    await this.authService.logout(req.user.sub);
-
-    return new DefaultResponse({
-      status_code: HttpStatus.OK,
-      message: 'User has been successfully logged out',
-    });
+  logout(@Request() req: AuthRequest): Promise<void> {
+    return this.authService.logout(req.user.sub);
   }
 }

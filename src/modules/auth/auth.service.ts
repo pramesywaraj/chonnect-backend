@@ -9,11 +9,11 @@ import PasswordService from '../user/password.service';
 import { User } from '../../entities/user.entity';
 
 import { throwHttpException } from '../../common/exceptions/utils';
+import { refreshJwtConfig } from '../../common/config/auth.config';
+
+import { LoginResponse, RefreshAccessResponse } from './responses';
 
 import { CreateUserDto } from '../user/dtos/create-user.dto';
-import { refreshJwtConfig } from 'src/common/config/auth.config';
-import { LoginResponse } from './responses/login.response';
-import { RefreshAccessResponse } from './responses/refresh-access.response';
 import { AuthJwtPayload } from '../../types/auth.type';
 
 @Injectable()
