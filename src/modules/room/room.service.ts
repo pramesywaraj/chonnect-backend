@@ -19,7 +19,7 @@ export default class RoomService {
     private readonly userService: UserService,
   ) {}
 
-  async create(creatorId: string, createRoomDto: CreateRoomDto): Promise<Room> {
+  public async create(creatorId: string, createRoomDto: CreateRoomDto): Promise<Room> {
     const creator = await this.userService.findOneById(creatorId);
     if (!creator) throw new NotFoundException('Creator not found');
 
@@ -69,5 +69,12 @@ export default class RoomService {
     await this.roomUserRepository.save(roomUser);
 
     return room;
+  }
+
+  public async getAllUserRooms(userId: string): Promise<Room[]> {
+    return this.roomRepository
+      .createQueryBuilder('room')
+      .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
+      .getMany();
   }
 }
