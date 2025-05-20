@@ -25,7 +25,7 @@ export class Message {
   room: Room;
 
   @OneToMany(() => MessageStatus, (status) => status.message)
-  status: MessageStatus;
+  statuses: MessageStatus;
 
   @CreateDateColumn()
   created_at: Date;
