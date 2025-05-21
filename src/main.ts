@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 
 import { CustomLogger } from './common/logger/custom-logger.service';
 import CustomValidationPipe from './common/pipes/CustomValidation.pipe';
-import ResponseInterceptor from './common/interceptors/response.interceptor';
+import { ResponseInterceptor } from './common/interceptors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
