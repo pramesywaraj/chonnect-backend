@@ -1,4 +1,3 @@
-import { Expose } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -7,6 +6,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Expose } from 'class-transformer';
+
 import { RoomUser } from './room-user.entity';
 import { Message } from './message.entity';
 import { MessageStatus } from './message-status.entity';
@@ -48,6 +49,7 @@ export class User {
   refresh_token: string | null;
 
   @OneToMany(() => RoomUser, (roomUser) => roomUser.user)
+  @Expose()
   room_user: RoomUser[];
 
   @OneToMany(() => Message, (message) => message.sender)

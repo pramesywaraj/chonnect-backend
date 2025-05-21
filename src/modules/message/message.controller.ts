@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  SerializeOptions,
+  UseInterceptors,
+} from '@nestjs/common';
 import MessageService from './message.service';
 import { Message } from '../../entities';
 import { AuthRequest } from 'src/types/auth.type';
@@ -6,6 +16,8 @@ import CreateMessageDto from './dtos/create-message.dto';
 import { SuccessMessage } from 'src/common/decorators';
 
 @Controller('message')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({ strategy: 'excludeAll' })
 export default class MessageController {
   constructor(private readonly messageService: MessageService) {}
 

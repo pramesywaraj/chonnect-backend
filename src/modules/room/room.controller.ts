@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Post,
+  Request,
+  SerializeOptions,
+  UseInterceptors,
+} from '@nestjs/common';
 
 import { Room } from '../../entities';
 
@@ -8,6 +17,8 @@ import { AuthRequest } from 'src/types/auth.type';
 import { SuccessMessage } from 'src/common/decorators';
 
 @Controller('room')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({ strategy: 'excludeAll' })
 export default class RoomController {
   constructor(private readonly roomService: RoomService) {}
 

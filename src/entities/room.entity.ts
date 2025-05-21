@@ -18,21 +18,27 @@ export class Room {
   id: string;
 
   @Column({ type: 'varchar', length: 40, nullable: true })
+  @Expose()
   name: string | null;
 
   @Column({ default: false })
+  @Expose()
   is_group: boolean;
 
   @CreateDateColumn()
+  @Expose()
   created_at: Date;
 
   @OneToMany(() => RoomUser, (roomUser) => roomUser.room)
+  @Expose()
   room_user: RoomUser[];
 
   @OneToMany(() => Message, (message) => message.room)
+  @Expose()
   messages: Message[];
 
   @ManyToOne(() => Message, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn()
+  @Expose()
   last_message: Message;
 }

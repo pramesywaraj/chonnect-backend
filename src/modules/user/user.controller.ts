@@ -1,10 +1,19 @@
-import { Controller, Get, Request } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Request,
+  SerializeOptions,
+  UseInterceptors,
+} from '@nestjs/common';
 
 import UserService from './user.service';
 import { AuthRequest } from '../../types/auth.type';
 import { SuccessMessage } from 'src/common/decorators';
 
 @Controller('user')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({ strategy: 'excludeAll' })
 export default class UserController {
   constructor(private readonly userService: UserService) {}
 
