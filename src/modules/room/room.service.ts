@@ -23,6 +23,7 @@ export default class RoomService {
     const creator = await this.userService.findOneById(creatorId);
     if (!creator) throw new NotFoundException('Creator not found');
 
+    let roomName = createRoomDto.name;
     const isOneOnOne = createRoomDto.participant_ids.length === 1;
 
     if (isOneOnOne) {
@@ -38,10 +39,14 @@ export default class RoomService {
         .getOne();
 
       if (isOneOnOneRoomExist) throw new ConflictException('Room already exists');
+
+      const otherUser = await this.userService.findOneById(otherUserId);
+
+      roomName = otherUser?.name ?? otherUser?.email;
     }
 
     const room = this.roomRepository.create({
-      name: isOneOnOne ? null : createRoomDto.name,
+      name: roomName,
       is_group: !isOneOnOne,
     });
 
