@@ -15,6 +15,8 @@ import RoomService from './room.service';
 import { CreateRoomDto } from './dtos';
 import { AuthRequest } from 'src/types/auth.type';
 import { SuccessMessage } from 'src/common/decorators';
+import RoomResponse from './responses/room.response';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('room')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -30,7 +32,9 @@ export default class RoomController {
 
   @SuccessMessage("User's rooms has been fetched")
   @Get()
-  getUserRooms(@Request() req: AuthRequest): Promise<Room[]> {
-    return this.roomService.getAllUserRooms(req.user.sub);
+  async getUserRooms(@Request() req: AuthRequest): Promise<RoomResponse[]> {
+    const rooms = await this.roomService.getAllUserRooms(req.user.sub);
+
+    return rooms.map((room) => plainToInstance(RoomResponse, room));
   }
 }

@@ -30,7 +30,7 @@ export class Room {
   created_at: Date;
 
   @OneToMany(() => RoomUser, (roomUser) => roomUser.room)
-  @Expose()
+  @Expose({ name: 'participants' })
   room_user: RoomUser[];
 
   @OneToMany(() => Message, (message) => message.room)
