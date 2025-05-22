@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
 
-import { CreateUserDto, UpdateUserDto } from './dtos';
+import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 
 import PasswordService from './password.service';
 
@@ -30,22 +30,27 @@ export default class UserService {
     });
   }
 
-  public async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await this.passwordService.hash(createUserDto.password);
+  public async createUser(createUserRequestDto: CreateUserRequestDto): Promise<User> {
+    const hashedPassword = await this.passwordService.hash(createUserRequestDto.password);
 
     const newUser = this.userRepository.create({
-      ...createUserDto,
+      ...createUserRequestDto,
       password: hashedPassword,
     });
 
     return await this.userRepository.save(newUser);
   }
 
-  public async updateUser(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
-    if (updateUserDto.password)
-      updateUserDto.password = await this.passwordService.hash(updateUserDto.password);
+  public async updateUser(
+    userId: string,
+    updateUserRequestDto: UpdateUserRequestDto,
+  ): Promise<User> {
+    if (updateUserRequestDto.password)
+      updateUserRequestDto.password = await this.passwordService.hash(
+        updateUserRequestDto.password,
+      );
 
-    await this.userRepository.update({ id: userId }, updateUserDto);
+    await this.userRepository.update({ id: userId }, updateUserRequestDto);
 
     const updatedUser = await this.findOneById(userId);
     if (!updatedUser) {

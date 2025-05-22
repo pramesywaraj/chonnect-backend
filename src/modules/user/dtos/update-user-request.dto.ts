@@ -1,6 +1,6 @@
 import { IsOptional, IsUrl, Matches, MaxLength, MinLength } from 'class-validator';
 
-export class UpdateUserDto {
+export default class UpdateUserRequestDto {
   @IsOptional()
   @MaxLength(30, { message: 'Name must have max 30 characters!' })
   name?: string;

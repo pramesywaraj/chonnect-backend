@@ -3,7 +3,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Request, UseGuards } from
 import AuthService from './auth.service';
 import { User } from '../../entities/user.entity';
 
-import { CreateUserDto } from '../user/dtos/create-user.dto';
+import { CreateUserRequestDto } from '../user/dtos';
 
 import { LoginResponse, RefreshAccessResponse } from './responses';
 import { LocalAuthGuard, RefreshJwtAuthGuard } from './guards';
@@ -21,8 +21,8 @@ export default class AuthController {
   @Public()
   @SuccessMessage('User successfully registered')
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.authService.register(createUserDto);
+  async register(@Body() createUserRequestDto: CreateUserRequestDto): Promise<User> {
+    return this.authService.register(createUserRequestDto);
   }
 
   @Public()

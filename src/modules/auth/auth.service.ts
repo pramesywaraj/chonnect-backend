@@ -13,7 +13,7 @@ import { refreshJwtConfig } from '../../common/config/auth.config';
 
 import { LoginResponse, RefreshAccessResponse } from './responses';
 
-import { CreateUserDto } from '../user/dtos/create-user.dto';
+import { CreateUserRequestDto } from '../user/dtos';
 import { AuthJwtPayload } from '../../types/auth.type';
 
 @Injectable()
@@ -71,8 +71,8 @@ export default class AuthService {
     return { sub: user.id, email: user.email };
   }
 
-  public async register(createUserDto: CreateUserDto): Promise<User> {
-    const isUserExisted = await this.userService.findOneByEmail(createUserDto.email);
+  public async register(createUserRequestDto: CreateUserRequestDto): Promise<User> {
+    const isUserExisted = await this.userService.findOneByEmail(createUserRequestDto.email);
 
     if (isUserExisted) {
       const message = 'User already registered with this email.';
@@ -84,7 +84,7 @@ export default class AuthService {
       });
     }
 
-    const user = await this.userService.createUser(createUserDto);
+    const user = await this.userService.createUser(createUserRequestDto);
 
     return user;
   }
