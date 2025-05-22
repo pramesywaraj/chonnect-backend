@@ -1,1 +1,3 @@
-export { default as CreateRoomDto } from './create-room.dto';
+export { default as CreateRoomRequestDto } from './create-room-request.dto';
+export { default as RoomParticipantDto } from './room-participant.dto';
+export { default as RoomResponseDto } from './room-response.dto';

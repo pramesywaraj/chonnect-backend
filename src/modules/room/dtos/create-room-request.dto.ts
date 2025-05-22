@@ -8,7 +8,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export default class CreateRoomDto {
+export default class CreateRoomRequestDto {
   @IsOptional()
   @IsString()
   @MinLength(3, { message: 'Room name must be at least 3 characters' })

@@ -1,9 +1,9 @@
 import { Expose, Transform, Type } from 'class-transformer';
 
-import RoomParticipantDto from '../dtos/room-participant.dto';
+import RoomParticipantDto from './room-participant.dto';
 import { Room } from '../../../entities';
 
-export default class RoomResponse {
+export default class RoomResponseDto {
   @Expose()
   id: string;
 
