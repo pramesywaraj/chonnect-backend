@@ -80,6 +80,17 @@ export default class RoomService {
     return this.roomRepository
       .createQueryBuilder('room')
       .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
+      .leftJoin('room.room_user', 'participants')
+      .leftJoin('participants.user', 'participant')
+      .addSelect([
+        'participants.id',
+        'participants.role',
+        'participants.joined_at',
+        'participant.id',
+        'participant.name',
+        'participant.profile_image',
+      ])
+      .where('participant.id != :userId', { userId })
       .getMany();
   }
 }
