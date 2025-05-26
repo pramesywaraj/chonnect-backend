@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { User } from './user.entity';
 import { Message } from './message.entity';
 import { MessageStatusEnum } from 'src/enums/message.enum';
@@ -12,10 +12,12 @@ export class MessageStatus {
   id: string;
 
   @ManyToOne(() => Message, (message) => message.statuses, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'message_id' })
   @Expose()
   message: Message;
 
   @ManyToOne(() => User, (user) => user.message_status, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'sender_id' })
   @Expose()
   sender: User;
 

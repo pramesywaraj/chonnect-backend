@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Expose } from 'class-transformer';
 
 import { Room } from './room.entity';
@@ -13,10 +13,12 @@ export class RoomUser {
   id: string;
 
   @ManyToOne(() => Room, (room) => room.room_user, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'room_id' })
   @Expose()
   room: Room;
 
   @ManyToOne(() => User, (user) => user.room_user, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   @Expose()
   user: User;
 

@@ -38,7 +38,7 @@ export class Room {
   messages: Message[];
 
   @ManyToOne(() => Message, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn()
+  @JoinColumn({ name: 'last_message_id' })
   @Expose()
   last_message: Message;
 }

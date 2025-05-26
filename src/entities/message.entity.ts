@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -22,16 +23,18 @@ export class Message {
   content: string;
 
   @ManyToOne(() => User, (user) => user.messages, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'sender_id' })
   @Expose()
   sender: User;
 
   @ManyToOne(() => Room, (room) => room.messages, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'room_id' })
   @Expose()
   room: Room;
 
   @OneToMany(() => MessageStatus, (status) => status.message)
   @Expose()
-  statuses: MessageStatus;
+  statuses: MessageStatus[];
 
   @CreateDateColumn()
   @Expose()
