@@ -10,6 +10,6 @@ export const typeOrmConfig = registerAs(
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    synchronize: Boolean(process.env.DB_SYNCHRONIZE ?? false),
+    synchronize: process.env.DB_SYNCHRONIZE ? Boolean(Number(process.env.DB_SYNCHRONIZE)) : false,
   }),
 );
