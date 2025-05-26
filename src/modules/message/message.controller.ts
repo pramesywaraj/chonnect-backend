@@ -9,11 +9,15 @@ import {
   SerializeOptions,
   UseInterceptors,
 } from '@nestjs/common';
+
 import MessageService from './message.service';
+
 import { Message } from '../../entities';
-import { AuthRequest } from 'src/types/auth.type';
-import CreateMessageDto from './dtos/create-message.dto';
-import { SuccessMessage } from 'src/common/decorators';
+import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
+
+import { AuthRequest } from '../../types/auth.type';
+import { SuccessMessage } from '../../common/decorators';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('message')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -25,15 +29,17 @@ export default class MessageController {
   @Post()
   async sendMessage(
     @Request() req: AuthRequest,
-    @Body() createMessageDto: CreateMessageDto,
+    @Body() createMessageRequestDto: CreateMessageRequestDto,
   ): Promise<Message> {
     const userId = req.user.sub;
 
-    return this.messageService.sendMessage(userId, createMessageDto);
+    return this.messageService.sendMessage(userId, createMessageRequestDto);
   }
 
   @Get('/room/:roomId')
-  async getMessageOnRoom(@Param('roomId') roomId: string): Promise<Message[]> {
-    return this.messageService.getMessages(roomId);
+  async getMessageOnRoom(@Param('roomId') roomId: string): Promise<MessageResponseDto[]> {
+    const messages = await this.messageService.getMessages(roomId);
+
+    return messages.map((message) => plainToInstance(MessageResponseDto, message));
   }
 }
