@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-export default class CreateMessageDto {
+export default class CreateMessageRequestDto {
   @IsUUID()
   @IsNotEmpty()
   room_id: string;
