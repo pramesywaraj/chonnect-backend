@@ -1,7 +1,8 @@
 import { Expose, Transform, Type } from 'class-transformer';
 
 import RoomParticipantDto from './room-participant.dto';
-import { Room } from '../../../entities';
+import { Message, Room } from '../../../entities';
+import { MessageResponseDto } from '../../../modules/message/dtos';
 
 export default class RoomResponseDto {
   @Expose()
@@ -20,4 +21,8 @@ export default class RoomResponseDto {
   @Transform(({ obj }: { obj: Room }) => obj.room_user)
   @Type(() => RoomParticipantDto)
   participants: RoomParticipantDto[];
+
+  @Expose()
+  @Type(() => MessageResponseDto)
+  last_message: Message;
 }

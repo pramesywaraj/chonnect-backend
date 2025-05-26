@@ -39,6 +39,7 @@ export default class RoomService {
         })
         .groupBy('room.id')
         .having('COUNT(room.id) = 1')
+        .andHaving('room.is_group = FALSE')
         .getOne();
 
       if (isOneOnOneRoomExist) throw new ConflictException('Room already exists');
@@ -80,20 +81,28 @@ export default class RoomService {
   }
 
   public async getAllUserRooms(userId: string): Promise<Room[]> {
-    return this.roomRepository
-      .createQueryBuilder('room')
-      .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
-      .leftJoin('room.room_user', 'participants')
-      .leftJoin('participants.user', 'participant')
-      .addSelect([
-        'participants.id',
-        'participants.role',
-        'participants.joined_at',
-        'participant.id',
-        'participant.name',
-        'participant.profile_image',
-      ])
-      .where('participant.id != :userId', { userId })
-      .getMany();
+    return (
+      this.roomRepository
+        .createQueryBuilder('room')
+        .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
+        // join room with room user to see
+        // all the participants on that room
+        .leftJoin('room.room_user', 'participants')
+        .leftJoin('participants.user', 'participant')
+        .addSelect([
+          'participants.id',
+          'participants.role',
+          'participants.joined_at',
+          'participant.id',
+          'participant.name',
+          'participant.profile_image',
+        ])
+        // join the room with message to see
+        // the last message of that room
+        .leftJoinAndSelect('room.last_message', 'last_message')
+        .leftJoinAndSelect('last_message.sender', 'sender')
+        .where('participant.id != :userId', { userId })
+        .getMany()
+    );
   }
 }
