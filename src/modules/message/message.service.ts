@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, type FindOptionsWhere, type Repository } from 'typeorm';
 
 import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
 import { CreateMessageRequestDto } from './dtos';
+import { CursorPaginationDto } from '../../dto/pagination.dto';
 
 import { MessageStatusEnum } from '../../enums/message.enum';
 
@@ -60,11 +61,27 @@ export default class MessageService {
     return message;
   }
 
-  public async getMessages(roomId: string): Promise<Message[]> {
-    return this.messageRepository.find({
-      where: { room: { id: roomId } },
+  public async getMessages(
+    roomId: string,
+    limit: number,
+    before?: string,
+  ): Promise<{ messages: Message[]; has_more: boolean }> {
+    const where: FindOptionsWhere<Message> = { room: { id: roomId } };
+
+    if (before) {
+      where.created_at = LessThan(new Date(before));
+    }
+
+    const messages = await this.messageRepository.find({
+      where,
       relations: ['sender', 'statuses'],
-      order: { created_at: 'ASC' },
+      order: { created_at: 'DESC' },
+      take: limit + 1,
     });
+
+    const hasMore = messages.length > limit;
+    const paginatedMessages = hasMore ? messages.slice(0, limit) : messages;
+
+    return { messages: paginatedMessages, has_more: hasMore };
   }
 }

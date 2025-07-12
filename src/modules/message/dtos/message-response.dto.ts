@@ -33,7 +33,10 @@ export default class MessageResponseDto {
 
   @Expose()
   @Type(() => MessageStatusDto)
-  status: MessageStatus;
+  statuses: MessageStatus[];
+
+  @Expose()
+  is_user_message: boolean;
 
   @Expose()
   created_at: Date;
