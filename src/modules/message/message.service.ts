@@ -4,7 +4,6 @@ import { LessThan, type FindOptionsWhere, type Repository } from 'typeorm';
 
 import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
 import { CreateMessageRequestDto } from './dtos';
-import { CursorPaginationDto } from '../../dto/pagination.dto';
 
 import { MessageStatusEnum } from '../../enums/message.enum';
 
