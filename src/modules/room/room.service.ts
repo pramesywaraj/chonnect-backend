@@ -80,6 +80,13 @@ export default class RoomService {
     return room;
   }
 
+  public async getRoomDetail(roomId: string): Promise<Room | null> {
+    return this.roomRepository.findOne({
+      where: { id: roomId },
+      relations: ['room_user', 'room_user.user', 'last_message', 'last_message.sender'],
+    });
+  }
+
   public async getAllUserRooms(userId: string): Promise<Room[]> {
     return (
       this.roomRepository

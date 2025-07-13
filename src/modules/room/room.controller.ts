@@ -3,6 +3,8 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Get,
+  NotFoundException,
+  Param,
   Post,
   Request,
   SerializeOptions,
@@ -38,5 +40,15 @@ export default class RoomController {
     const rooms = await this.roomService.getAllUserRooms(req.user.sub);
 
     return rooms.map((room) => plainToInstance(RoomResponseDto, room));
+  }
+
+  @SuccessMessage('Room detail has been fetched')
+  @Get(':roomId')
+  async getRoomDetail(@Param('roomId') roomId: string): Promise<RoomResponseDto> {
+    const room = await this.roomService.getRoomDetail(roomId);
+
+    if (!room) throw new NotFoundException('Room not found');
+
+    return plainToInstance(RoomResponseDto, room);
   }
 }
