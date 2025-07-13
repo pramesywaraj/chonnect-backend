@@ -34,6 +34,7 @@ export default class AuthController {
     return this.authService.login(user);
   }
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshJwtAuthGuard)
   @SuccessMessage('Token successfully refreshed')
