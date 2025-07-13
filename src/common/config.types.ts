@@ -19,4 +19,5 @@ export const appConfigSchema = Joi.object({
   JWT_ACCESS_EXPIRES_IN: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),
   JWT_REFRESH_EXPIRES_IN: Joi.string().required(),
+  CORS_ORIGINS_WHITELIST: Joi.string().required(),
 });
