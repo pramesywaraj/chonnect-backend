@@ -14,7 +14,7 @@ import {
 import MessageService from './message.service';
 
 import { Message } from '../../entities';
-import { CursorPaginationDto } from '../../dto/pagination.dto';
+import { CursorPaginationDto, CursorPaginationQueryParamsDto } from '../../dto/pagination.dto';
 import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
 
 import { AuthRequest } from '../../types/auth.type';
@@ -42,11 +42,10 @@ export default class MessageController {
   async getMessageOnRoom(
     @Request() req: AuthRequest,
     @Param('roomId') roomId: string,
-    @Query('limit') limit = 10,
-    @Query('before') before?: string,
+    @Query() pagination: CursorPaginationQueryParamsDto,
   ): Promise<CursorPaginationDto<MessageResponseDto>> {
     const userId = req.user.sub;
-    const { messages, has_more } = await this.messageService.getMessages(roomId, limit, before);
+    const { messages, has_more } = await this.messageService.getMessages(roomId, pagination);
 
     const data = messages.map((message) => {
       const result = plainToInstance(MessageResponseDto, message);

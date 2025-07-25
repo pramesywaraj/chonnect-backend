@@ -6,6 +6,7 @@ import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
 import { CreateMessageRequestDto } from './dtos';
 
 import { MessageStatusEnum } from '../../enums/message.enum';
+import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
 
 @Injectable()
 export default class MessageService {
@@ -62,9 +63,9 @@ export default class MessageService {
 
   public async getMessages(
     roomId: string,
-    limit: number,
-    before?: string,
+    pagination: CursorPaginationQueryParamsDto,
   ): Promise<{ messages: Message[]; has_more: boolean }> {
+    const { limit = 20, before } = pagination;
     const where: FindOptionsWhere<Message> = { room: { id: roomId } };
 
     if (before) {
