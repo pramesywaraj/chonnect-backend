@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   Request,
   SerializeOptions,
   UseInterceptors,
@@ -18,6 +19,7 @@ import { CreateRoomRequestDto, RoomResponseDto } from './dtos';
 import { AuthRequest } from 'src/types/auth.type';
 import { SuccessMessage } from 'src/common/decorators';
 import { plainToInstance } from 'class-transformer';
+import { CursorPaginationDto, CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
 
 @Controller('room')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -36,10 +38,18 @@ export default class RoomController {
 
   @SuccessMessage("User's rooms has been fetched")
   @Get()
-  async getUserRooms(@Request() req: AuthRequest): Promise<RoomResponseDto[]> {
-    const rooms = await this.roomService.getAllUserRooms(req.user.sub);
+  async getUserRooms(
+    @Request() req: AuthRequest,
+    @Query() pagination: CursorPaginationQueryParamsDto,
+  ): Promise<CursorPaginationDto<RoomResponseDto>> {
+    const { rooms, has_more, next_cursor } = await this.roomService.getAllUserRooms(
+      req.user.sub,
+      pagination,
+    );
 
-    return rooms.map((room) => plainToInstance(RoomResponseDto, room));
+    const data = rooms.map((room) => plainToInstance(RoomResponseDto, room));
+
+    return new CursorPaginationDto(data, has_more, next_cursor);
   }
 
   @SuccessMessage('Room detail has been fetched')

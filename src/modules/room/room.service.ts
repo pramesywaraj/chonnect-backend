@@ -6,6 +6,7 @@ import { Room, RoomUser } from '../../entities';
 import UserService from '../user/user.service';
 import { CreateRoomRequestDto } from './dtos';
 import { UserRoles } from '../user/enums/role.enum';
+import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
 
 @Injectable()
 export default class RoomService {
@@ -87,29 +88,48 @@ export default class RoomService {
     });
   }
 
-  public async getAllUserRooms(userId: string): Promise<Room[]> {
-    return (
-      this.roomRepository
-        .createQueryBuilder('room')
-        .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
-        // join room with room user to see
-        // all the participants on that room
-        .leftJoin('room.room_user', 'participants')
-        .leftJoin('participants.user', 'participant')
-        .addSelect([
-          'participants.id',
-          'participants.role',
-          'participants.joined_at',
-          'participant.id',
-          'participant.name',
-          'participant.profile_image',
-        ])
-        // join the room with message to see
-        // the last message of that room
-        .leftJoinAndSelect('room.last_message', 'last_message')
-        .leftJoinAndSelect('last_message.sender', 'sender')
-        .where('participant.id != :userId', { userId })
-        .getMany()
-    );
+  public async getAllUserRooms(
+    userId: string,
+    pagination: CursorPaginationQueryParamsDto,
+  ): Promise<{ rooms: Room[]; has_more: boolean; next_cursor: string | null }> {
+    const { before, limit = 20 } = pagination;
+
+    let query = this.roomRepository
+      .createQueryBuilder('room')
+      .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
+      // join room with room user to see
+      // all the participants on that room
+      .leftJoin('room.room_user', 'participants')
+      .leftJoin('participants.user', 'participant')
+      .addSelect([
+        'participants.id',
+        'participants.role',
+        'participants.joined_at',
+        'participant.id',
+        'participant.name',
+        'participant.profile_image',
+      ])
+      // join the room with message to see
+      // the last message of that room
+      .leftJoinAndSelect('room.last_message', 'last_message')
+      .leftJoinAndSelect('last_message.sender', 'sender')
+      .where('participant.id != :userId', { userId })
+      .orderBy('room.id', 'DESC')
+      .limit(limit + 1);
+
+    if (before) {
+      query = query.andWhere('room.id < :before', { before });
+    }
+
+    const rooms = await query.getMany();
+    const has_more = rooms.length > limit;
+    const items = has_more ? rooms.slice(0, limit) : rooms;
+    const next_cursor = has_more ? items[items.length - 1].id : null;
+
+    return {
+      rooms: items,
+      next_cursor,
+      has_more,
+    };
   }
 }
