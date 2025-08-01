@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, type FindOptionsWhere, type Repository } from 'typeorm';
 
 import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
-import { CreateMessageRequestDto } from './dtos';
+import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
 
 import { MessageStatusEnum } from '../../enums/message.enum';
 import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
+import { MessageGateway } from './message.gateway';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export default class MessageService {
@@ -18,6 +20,7 @@ export default class MessageService {
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
     @InjectRepository(RoomUser) private readonly roomUserRepository: Repository<RoomUser>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly messageGateway: MessageGateway,
   ) {}
 
   public async sendMessage(senderId: string, createMessageRequestDto: CreateMessageRequestDto) {
@@ -57,6 +60,22 @@ export default class MessageService {
     await this.roomRepository.update(room_id, {
       last_message: message,
     });
+
+    const messageWithRelations = await this.messageRepository.findOne({
+      where: { id: message.id },
+      relations: ['sender', 'statuses'],
+    });
+
+    const messageResponse = plainToInstance(MessageResponseDto, messageWithRelations);
+
+    if (messageResponse) this.messageGateway.sendMessageToRoom(room_id, messageResponse);
+
+    const updatedRoom = await this.roomRepository.findOne({
+      where: { id: room_id },
+      relations: ['last_message', 'last_message.sender'],
+    });
+
+    if (updatedRoom) this.messageGateway.updateRoomLastMessage(room_id, updatedRoom);
 
     return message;
   }
