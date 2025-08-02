@@ -9,6 +9,7 @@ import { MessageStatusEnum } from '../../enums/message.enum';
 import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
 import { MessageGateway } from './message.gateway';
 import { plainToInstance } from 'class-transformer';
+import { RoomResponseDto } from '../room/dtos';
 
 @Injectable()
 export default class MessageService {
@@ -66,6 +67,7 @@ export default class MessageService {
       relations: ['sender', 'statuses'],
     });
 
+    // Need to reconsider the implementation
     const messageResponse = plainToInstance(MessageResponseDto, messageWithRelations);
 
     if (messageResponse) this.messageGateway.sendMessageToRoom(room_id, messageResponse);
@@ -75,7 +77,9 @@ export default class MessageService {
       relations: ['last_message', 'last_message.sender'],
     });
 
-    if (updatedRoom) this.messageGateway.updateRoomLastMessage(room_id, updatedRoom);
+    const roomResponse = plainToInstance(RoomResponseDto, updatedRoom);
+
+    if (updatedRoom) this.messageGateway.updateRoomLastMessage(room_id, roomResponse);
 
     return message;
   }

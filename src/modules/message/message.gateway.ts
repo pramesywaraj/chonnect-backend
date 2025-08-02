@@ -9,7 +9,7 @@ import { type Socket, type Server } from 'socket.io';
 
 import { MESSAGE_SOCKET, ROOM_SOCKET } from '../../enums/socket.enum';
 import { MessageResponseDto } from './dtos';
-import { Room } from 'src/entities';
+import { RoomResponseDto } from '../room/dtos';
 
 @WebSocketGateway({
   cors: {
@@ -45,7 +45,7 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     this.server.to(roomId).emit(MESSAGE_SOCKET.NEW_MESSAGE, message);
   }
 
-  updateRoomLastMessage(roomId: string, message: Room) {
-    this.server.to(roomId).emit(ROOM_SOCKET.ROOM_LAST_MESSAGE_UPDATE, message);
+  updateRoomLastMessage(roomId: string, room: RoomResponseDto) {
+    this.server.to(roomId).emit(ROOM_SOCKET.ROOM_LAST_MESSAGE_UPDATE, room);
   }
 }
