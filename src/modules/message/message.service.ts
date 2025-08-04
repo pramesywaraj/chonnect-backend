@@ -88,7 +88,7 @@ export default class MessageService {
   public async getMessages(
     roomId: string,
     pagination: CursorPaginationQueryParamsDto,
-  ): Promise<{ messages: Message[]; has_more: boolean }> {
+  ): Promise<{ messages: Message[]; has_more: boolean; next_cursor: string | null }> {
     const { limit = 20, before } = pagination;
     const where: FindOptionsWhere<Message> = { room: { id: roomId } };
 
@@ -105,7 +105,10 @@ export default class MessageService {
 
     const hasMore = messages.length > limit;
     const paginatedMessages = hasMore ? messages.slice(0, limit) : messages;
+    const nextCursor = hasMore
+      ? paginatedMessages[paginatedMessages.length - 1].created_at.toISOString()
+      : null;
 
-    return { messages: paginatedMessages, has_more: hasMore };
+    return { messages: paginatedMessages, has_more: hasMore, next_cursor: nextCursor };
   }
 }

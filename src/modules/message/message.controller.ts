@@ -44,7 +44,10 @@ export default class MessageController {
     @Query() pagination: CursorPaginationQueryParamsDto,
   ): Promise<CursorPaginationDto<MessageResponseDto>> {
     const userId = req.user.sub;
-    const { messages, has_more } = await this.messageService.getMessages(roomId, pagination);
+    const { messages, has_more, next_cursor } = await this.messageService.getMessages(
+      roomId,
+      pagination,
+    );
 
     const data = messages.map((message) => {
       const result = plainToInstance(MessageResponseDto, message);
@@ -53,6 +56,6 @@ export default class MessageController {
       return result;
     });
 
-    return new CursorPaginationDto(data, has_more);
+    return new CursorPaginationDto(data, has_more, next_cursor);
   }
 }
