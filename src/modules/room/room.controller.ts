@@ -54,8 +54,12 @@ export default class RoomController {
 
   @SuccessMessage('Room detail has been fetched')
   @Get(':roomId')
-  async getRoomDetail(@Param('roomId') roomId: string): Promise<RoomResponseDto> {
-    const room = await this.roomService.getRoomDetail(roomId);
+  async getRoomDetail(
+    @Request() req: AuthRequest,
+    @Param('roomId') roomId: string,
+  ): Promise<RoomResponseDto> {
+    const userId = req.user.sub as string;
+    const room = await this.roomService.getRoomDetail(roomId, userId);
 
     if (!room) throw new NotFoundException('Room not found');
 

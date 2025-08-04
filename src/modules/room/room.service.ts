@@ -27,7 +27,7 @@ export default class RoomService {
     const creator = await this.userService.findOneById(creatorId);
     if (!creator) throw new NotFoundException('Creator not found');
 
-    let roomName = createRoomRequestDto.name;
+    const roomName = createRoomRequestDto.name;
     const isOneOnOne = createRoomRequestDto.participant_ids.length === 1;
 
     if (isOneOnOne) {
@@ -44,10 +44,6 @@ export default class RoomService {
         .getOne();
 
       if (isOneOnOneRoomExist) throw new ConflictException('Room already exists');
-
-      const otherUser = await this.userService.findOneById(otherUserId);
-
-      roomName = otherUser?.name ?? otherUser?.email;
     }
 
     const room = this.roomRepository.create({
@@ -81,11 +77,21 @@ export default class RoomService {
     return room;
   }
 
-  public async getRoomDetail(roomId: string): Promise<Room | null> {
-    return this.roomRepository.findOne({
+  public async getRoomDetail(roomId: string, userId: string): Promise<Room | null> {
+    const room = await this.roomRepository.findOne({
       where: { id: roomId },
       relations: ['room_user', 'room_user.user', 'last_message', 'last_message.sender'],
     });
+
+    if (room && userId && !room.is_group) {
+      // For one-on-one rooms, get the partner's name
+      const partner = room.room_user.find((ru) => ru.user.id !== userId);
+      if (partner) {
+        room.name = partner.user.name || partner.user.email;
+      }
+    }
+
+    return room;
   }
 
   public async getAllUserRooms(
@@ -133,8 +139,19 @@ export default class RoomService {
     const items = has_more ? rooms.slice(0, limit) : rooms;
     const next_cursor = has_more ? items[items.length - 1].id : null;
 
+    const processedRooms = items.map((room) => {
+      if (!room.is_group) {
+        // For one-on-one rooms, find the partner (other user)
+        const partner = room.room_user.find((ru) => ru.user.id !== userId);
+        if (partner) {
+          room.name = partner.user.name || partner.user.email;
+        }
+      }
+      return room;
+    });
+
     return {
-      rooms: items,
+      rooms: processedRooms,
       next_cursor,
       has_more,
     };
