@@ -13,7 +13,6 @@ import {
 
 import MessageService from './message.service';
 
-import { Message } from '../../entities';
 import { CursorPaginationDto, CursorPaginationQueryParamsDto } from '../../dto/pagination.dto';
 import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
 
@@ -32,7 +31,7 @@ export default class MessageController {
   async sendMessage(
     @Request() req: AuthRequest,
     @Body() createMessageRequestDto: CreateMessageRequestDto,
-  ): Promise<Message> {
+  ): Promise<MessageResponseDto> {
     const userId = req.user.sub;
 
     return this.messageService.sendMessage(userId, createMessageRequestDto);

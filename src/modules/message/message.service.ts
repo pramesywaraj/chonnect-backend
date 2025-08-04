@@ -69,6 +69,7 @@ export default class MessageService {
 
     // Need to reconsider the implementation
     const messageResponse = plainToInstance(MessageResponseDto, messageWithRelations);
+    messageResponse.is_user_message = true;
 
     if (messageResponse) this.messageGateway.sendMessageToRoom(room_id, messageResponse);
 
@@ -81,7 +82,7 @@ export default class MessageService {
 
     if (updatedRoom) this.messageGateway.updateRoomLastMessage(room_id, roomResponse);
 
-    return message;
+    return messageResponse;
   }
 
   public async getMessages(
