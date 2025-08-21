@@ -58,7 +58,7 @@ export default class RoomController {
     @Request() req: AuthRequest,
     @Param('roomId') roomId: string,
   ): Promise<RoomResponseDto> {
-    const userId = req.user.sub as string;
+    const userId = req.user.sub;
     const room = await this.roomService.getRoomDetail(roomId, userId);
 
     if (!room) throw new NotFoundException('Room not found');

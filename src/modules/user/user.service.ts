@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, ILike, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
 
@@ -8,6 +8,7 @@ import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 
 import PasswordService from './password.service';
 import { SearchUserQueryParams } from './dtos';
+import { CursorPaginationDto } from 'src/dto/pagination.dto';
 
 @Injectable()
 export default class UserService {
@@ -31,13 +32,8 @@ export default class UserService {
     });
   }
 
-  public async getUsers(searchParams: SearchUserQueryParams): Promise<User[]> {
-    const { search } = searchParams;
-
-    if (!search)
-      return await this.userRepository.find({
-        select: ['id', 'name', 'email', 'profile_image', 'created_at'],
-      });
+  public async getUsers(searchParams: SearchUserQueryParams): Promise<CursorPaginationDto<User>> {
+    const { search, limit = 10, before } = searchParams;
 
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
@@ -48,7 +44,18 @@ export default class UserService {
         search: `%${search}%`,
       });
 
-    return await queryBuilder.getMany();
+    if (before) queryBuilder.andWhere('user.id < :before', { before });
+
+    const users = await queryBuilder
+      .orderBy('user.name', 'ASC')
+      .limit(limit + 1)
+      .getMany();
+
+    const has_more = users.length > limit;
+    const items = has_more ? users.slice(0, limit) : users;
+    const next_cursor = has_more ? items[items.length - 1].id : null;
+
+    return new CursorPaginationDto(items, has_more, next_cursor);
   }
 
   public async createUser(createUserRequestDto: CreateUserRequestDto): Promise<User> {

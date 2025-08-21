@@ -20,7 +20,7 @@ export default class UserController {
   constructor(private readonly userService: UserService) {}
 
   @SuccessMessage('Users has been fetched')
-  @Get()
+  @Get('all')
   getUsers(@Query() searchParams: SearchUserQueryParams) {
     return this.userService.getUsers(searchParams);
   }
