@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { type FindOptionsWhere, ILike, In, Repository } from 'typeorm';
 
 import { User } from '../../entities/user.entity';
 
 import { CreateUserRequestDto, UpdateUserRequestDto } from './dtos';
 
 import PasswordService from './password.service';
+import { SearchUserQueryParams } from './dtos';
 
 @Injectable()
 export default class UserService {
@@ -28,6 +29,26 @@ export default class UserService {
     return await this.userRepository.findBy({
       id: In(userIds),
     });
+  }
+
+  public async getUsers(searchParams: SearchUserQueryParams): Promise<User[]> {
+    const { search } = searchParams;
+
+    if (!search)
+      return await this.userRepository.find({
+        select: ['id', 'name', 'email', 'profile_image', 'created_at'],
+      });
+
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.name', 'user.email', 'user.profile_image', 'user.created_at']);
+
+    if (search)
+      queryBuilder.where('(user.name ILIKE :search OR user.email ILIKE :search)', {
+        search: `%${search}%`,
+      });
+
+    return await queryBuilder.getMany();
   }
 
   public async createUser(createUserRequestDto: CreateUserRequestDto): Promise<User> {

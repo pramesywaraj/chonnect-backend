@@ -11,12 +11,19 @@ import {
 import UserService from './user.service';
 import { AuthRequest } from '../../types/auth.type';
 import { SuccessMessage } from 'src/common/decorators';
+import { SearchUserQueryParams } from './dtos';
 
 @Controller('user')
 @UseInterceptors(ClassSerializerInterceptor)
 @SerializeOptions({ strategy: 'excludeAll' })
 export default class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @SuccessMessage('Users has been fetched')
+  @Get()
+  getUsers(@Query() searchParams: SearchUserQueryParams) {
+    return this.userService.getUsers(searchParams);
+  }
 
   @SuccessMessage('User profile fetched successfully')
   @Get('profile')
