@@ -44,16 +44,26 @@ export default class UserService {
         search: `%${search}%`,
       });
 
-    if (before) queryBuilder.andWhere('user.id < :before', { before });
+    // Composite Cursor
+    if (before) {
+      const [beforeName, beforeId] = before.split(':');
+      queryBuilder.andWhere(
+        '(user.name > :beforeName OR (user.name = :beforeName AND user.id < :beforeId))',
+        { beforeName, beforeId },
+      );
+    }
 
     const users = await queryBuilder
       .orderBy('user.name', 'ASC')
+      .addOrderBy('user.id', 'ASC')
       .limit(limit + 1)
       .getMany();
 
     const has_more = users.length > limit;
     const items = has_more ? users.slice(0, limit) : users;
-    const next_cursor = has_more ? items[items.length - 1].id : null;
+    const next_cursor = has_more
+      ? `${items[items.length - 1].name}:${items[items.length - 1].id}`
+      : null;
 
     return new CursorPaginationDto(items, has_more, next_cursor);
   }
