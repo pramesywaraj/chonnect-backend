@@ -21,8 +21,9 @@ export default class UserController {
 
   @SuccessMessage('Users has been fetched')
   @Get('all')
-  getUsers(@Query() searchParams: SearchUserQueryParams) {
-    return this.userService.getUsers(searchParams);
+  getUsers(@Request() req: AuthRequest, @Query() searchParams: SearchUserQueryParams) {
+    const currentUserId = req.user.sub;
+    return this.userService.getUsers(searchParams, currentUserId);
   }
 
   @SuccessMessage('User profile fetched successfully')

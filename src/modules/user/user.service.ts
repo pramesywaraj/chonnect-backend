@@ -32,12 +32,16 @@ export default class UserService {
     });
   }
 
-  public async getUsers(searchParams: SearchUserQueryParams): Promise<CursorPaginationDto<User>> {
+  public async getUsers(
+    searchParams: SearchUserQueryParams,
+    currentUserId: string,
+  ): Promise<CursorPaginationDto<User>> {
     const { search, limit = 10, before } = searchParams;
 
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
-      .select(['user.id', 'user.name', 'user.email', 'user.profile_image', 'user.created_at']);
+      .select(['user.id', 'user.name', 'user.email', 'user.profile_image', 'user.created_at'])
+      .where('user.id != :currentUserId', { currentUserId });
 
     if (search)
       queryBuilder.where('(user.name ILIKE :search OR user.email ILIKE :search)', {
