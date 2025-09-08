@@ -73,14 +73,27 @@ export default class MessageService {
 
     if (messageResponse) this.messageGateway.sendMessageToRoom(room_id, messageResponse);
 
-    const updatedRoom = await this.roomRepository.findOne({
-      where: { id: room_id },
-      relations: ['last_message', 'last_message.sender'],
+    const updatedRoom = await this.roomRepository
+      .createQueryBuilder('room')
+      .leftJoinAndSelect('room.last_message', 'last_message')
+      .leftJoinAndSelect('last_message.sender', 'sender')
+      .leftJoinAndSelect('room.room_user', 'room_user')
+      .leftJoinAndSelect('room_user.user', 'user')
+      .where('room.id = :room_id', { room_id })
+      .getOne();
+
+    const roomResponse = plainToInstance(RoomResponseDto, updatedRoom, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
     });
 
-    const roomResponse = plainToInstance(RoomResponseDto, updatedRoom);
+    if (updatedRoom) {
+      const participantIds = roomResponse.participants
+        .filter((user) => user.id !== senderId)
+        .map((user) => user.id);
 
-    if (updatedRoom) this.messageGateway.updateRoomLastMessage(room_id, roomResponse);
+      this.messageGateway.notifyRoomUpdatedToUsers(participantIds, roomResponse);
+    }
 
     return messageResponse;
   }
