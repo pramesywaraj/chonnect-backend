@@ -127,7 +127,7 @@ export default class RoomService {
       )
       .addSelect(['message_statuses.id', 'message_statuses.status', 'message_statuses.read_at'])
       .where('participant.id != :userId', { userId })
-      .orderBy('room.id', 'DESC')
+      .orderBy('COALESCE(last_message.created_at, room.created_at)', 'DESC')
       .limit(limit + 1);
 
     if (before) {
