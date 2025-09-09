@@ -119,13 +119,10 @@ export default class RoomService {
       // the last message of that room
       .leftJoinAndSelect('room.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
-      .leftJoin(
-        'last_message.statuses',
-        'message_statuses',
-        'message_statuses.sender.id = :userId',
-        { userId },
-      )
-      .addSelect(['message_statuses.id', 'message_statuses.status', 'message_statuses.read_at'])
+      .leftJoin('last_message.statuses', 'message_statuses', 'message_statuses.user.id = :userId', {
+        userId,
+      })
+      .addSelect(['message_statuses.id', 'message_statuses.status', 'message_statuses.created_at'])
       .where('participant.id != :userId', { userId })
       .orderBy('COALESCE(last_message.created_at, room.created_at)', 'DESC')
       .limit(limit + 1);

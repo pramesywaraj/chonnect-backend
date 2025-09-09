@@ -18,6 +18,9 @@ class MessageStatusDto {
   @Expose()
   @Transform(({ obj }: { obj: MessageStatus }) => obj.status)
   name: MessageStatusEnum;
+
+  @Expose()
+  created_at: Date;
 }
 
 export default class MessageResponseDto {

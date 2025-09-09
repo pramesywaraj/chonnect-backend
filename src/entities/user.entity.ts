@@ -55,6 +55,6 @@ export class User {
   @OneToMany(() => Message, (message) => message.sender)
   messages: Message[];
 
-  @OneToMany(() => MessageStatus, (status) => status.sender)
+  @OneToMany(() => MessageStatus, (status) => status.user)
   message_status: MessageStatus[];
 }

@@ -51,7 +51,7 @@ export default class MessageService {
       .map((room) =>
         this.messageStatusRepository.create({
           message,
-          sender: room.user,
+          user: room.user,
           status: MessageStatusEnum.SENT,
         }),
       );
