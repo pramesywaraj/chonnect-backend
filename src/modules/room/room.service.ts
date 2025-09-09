@@ -2,6 +2,8 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import * as util from 'util';
+
 import { Room, RoomUser } from '../../entities';
 import UserService from '../user/user.service';
 import { CreateRoomRequestDto } from './dtos';
@@ -105,12 +107,12 @@ export default class RoomService {
       .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
       // join room with room user to see
       // all the participants on that room
-      .leftJoin('room.room_user', 'participants')
-      .leftJoin('participants.user', 'participant')
+      .leftJoinAndSelect('room.room_user', 'room_user')
+      .leftJoinAndSelect('room_user.user', 'participant')
       .addSelect([
-        'participants.id',
-        'participants.role',
-        'participants.joined_at',
+        'room_user.id',
+        'room_user.role',
+        'room_user.joined_at',
         'participant.id',
         'participant.name',
         'participant.profile_image',
@@ -132,6 +134,7 @@ export default class RoomService {
     }
 
     const rooms = await query.getMany();
+
     const has_more = rooms.length > limit;
     const items = has_more ? rooms.slice(0, limit) : rooms;
     const next_cursor = has_more ? items[items.length - 1].id : null;
