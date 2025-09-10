@@ -1,7 +1,7 @@
 import { Expose, Transform, Type } from 'class-transformer';
 
 import RoomParticipantDto from './room-participant.dto';
-import { Message, Room } from '../../../entities';
+import { Room } from '../../../entities';
 import { MessageResponseDto } from '../../../modules/message/dtos';
 
 export default class RoomResponseDto {
@@ -24,5 +24,5 @@ export default class RoomResponseDto {
 
   @Expose()
   @Type(() => MessageResponseDto)
-  last_message: Message;
+  last_message: MessageResponseDto;
 }

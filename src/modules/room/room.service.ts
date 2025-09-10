@@ -2,13 +2,12 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import * as util from 'util';
-
 import { Room, RoomUser } from '../../entities';
 import UserService from '../user/user.service';
-import { CreateRoomRequestDto } from './dtos';
+import { CreateRoomRequestDto, RoomResponseDto } from './dtos';
 import { UserRoles } from '../user/enums/role.enum';
 import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export default class RoomService {
@@ -97,14 +96,14 @@ export default class RoomService {
   }
 
   public async getAllUserRooms(
-    userId: string,
+    user_id: string,
     pagination: CursorPaginationQueryParamsDto,
-  ): Promise<{ rooms: Room[]; has_more: boolean; next_cursor: string | null }> {
+  ): Promise<{ rooms: RoomResponseDto[]; has_more: boolean; next_cursor: string | null }> {
     const { before, limit = 20 } = pagination;
 
     let query = this.roomRepository
       .createQueryBuilder('room')
-      .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :userId', { userId })
+      .innerJoin('room.room_user', 'roomUser', 'roomUser.user.id = :user_id', { user_id })
       // join room with room user to see
       // all the participants on that room
       .leftJoinAndSelect('room.room_user', 'room_user')
@@ -121,11 +120,17 @@ export default class RoomService {
       // the last message of that room
       .leftJoinAndSelect('room.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
-      .leftJoin('last_message.statuses', 'message_statuses', 'message_statuses.user.id = :userId', {
-        userId,
+      .leftJoin('last_message.statuses', 'message_status', 'message_status.user.id = :user_id', {
+        user_id,
       })
-      .addSelect(['message_statuses.id', 'message_statuses.status', 'message_statuses.created_at'])
-      .where('participant.id != :userId', { userId })
+      .addSelect([
+        'message_status.id',
+        'message_status.status',
+        'message_status.created_at',
+        'message_status.updated_at',
+        'message_status.read_at',
+      ])
+      .where('participant.id != :user_id', { user_id })
       .orderBy('COALESCE(last_message.created_at, room.created_at)', 'DESC')
       .limit(limit + 1);
 
@@ -142,12 +147,32 @@ export default class RoomService {
     const processedRooms = items.map((room) => {
       if (!room.is_group) {
         // For one-on-one rooms, find the partner (other user)
-        const partner = room.room_user.find((ru) => ru.user.id !== userId);
+        const partner = room.room_user.find((ru) => ru.user.id !== user_id);
         if (partner) {
           room.name = partner.user.name || partner.user.email;
         }
       }
-      return room;
+
+      const last_message = room.last_message;
+      const last_message_status = last_message?.statuses?.[0] ?? null;
+
+      const newShapedRoom = {
+        ...room,
+        last_message: last_message
+          ? {
+              id: last_message.id,
+              content: last_message.content,
+              sender: last_message.sender,
+              status: last_message_status,
+              is_user_message: last_message.sender.id === user_id,
+              created_at: last_message.created_at,
+            }
+          : null,
+      };
+
+      return plainToInstance(RoomResponseDto, newShapedRoom, {
+        exposeDefaultValues: true,
+      });
     });
 
     return {

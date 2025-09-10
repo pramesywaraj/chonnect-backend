@@ -1,6 +1,6 @@
-import { Expose, Transform, Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
-import { MessageStatus, User } from '../../../entities';
+import { User } from '../../../entities';
 import { MessageStatusEnum } from 'src/enums/message.enum';
 
 class MessageSenderDto {
@@ -15,12 +15,17 @@ class MessageSenderDto {
 }
 
 class MessageStatusDto {
-  @Expose()
-  @Transform(({ obj }: { obj: MessageStatus }) => obj.status)
-  name: MessageStatusEnum;
+  @Expose({ name: 'name' })
+  status: MessageStatusEnum;
 
   @Expose()
   created_at: Date;
+
+  @Expose()
+  updated_at: Date;
+
+  @Expose()
+  read_at: Date;
 }
 
 export default class MessageResponseDto {
@@ -36,7 +41,7 @@ export default class MessageResponseDto {
 
   @Expose()
   @Type(() => MessageStatusDto)
-  statuses: MessageStatus[];
+  status: MessageStatusDto;
 
   @Expose()
   is_user_message: boolean;

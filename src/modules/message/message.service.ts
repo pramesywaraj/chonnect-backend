@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, type FindOptionsWhere, type Repository } from 'typeorm';
+import { type Repository } from 'typeorm';
 
 import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
 import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
@@ -99,29 +99,53 @@ export default class MessageService {
   }
 
   public async getMessages(
-    roomId: string,
+    room_id: string,
+    user_id: string,
     pagination: CursorPaginationQueryParamsDto,
-  ): Promise<{ messages: Message[]; has_more: boolean; next_cursor: string | null }> {
+  ): Promise<{ messages: MessageResponseDto[]; has_more: boolean; next_cursor: string | null }> {
     const { limit = 20, before } = pagination;
-    const where: FindOptionsWhere<Message> = { room: { id: roomId } };
 
-    if (before) {
-      where.created_at = LessThan(new Date(before));
-    }
+    const query = this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.sender', 'sender')
+      .leftJoin('message.statuses', 'message_status', 'message_status.user.id = :user_id', {
+        user_id,
+      })
+      .addSelect([
+        'message_status.id',
+        'message_status.status',
+        'message_status.created_at',
+        'message_status.updated_at',
+        'message_status.read_at',
+      ])
+      .where('message.room.id = :room_id', { room_id })
+      .orderBy('message.created_at', 'DESC')
+      .take(limit + 1);
 
-    const messages = await this.messageRepository.find({
-      where,
-      relations: ['sender', 'statuses'],
-      order: { created_at: 'DESC' },
-      take: limit + 1,
+    if (before) query.andWhere('message.created_at < :before', { before: new Date(before) });
+
+    const queryResults = await query.getMany();
+
+    const hasMore = queryResults.length > limit;
+    const items = hasMore ? queryResults.slice(0, limit) : queryResults;
+    const nextCursor = hasMore ? items[items.length - 1].created_at.toISOString() : null;
+
+    const messages = items.map((message) => {
+      const status = message.statuses?.[0] ?? null;
+      return plainToInstance(
+        MessageResponseDto,
+        {
+          id: message.id,
+          content: message.content,
+          sender: message.sender,
+          status,
+          is_user_message: message.sender.id === user_id,
+          created_at: message.created_at,
+        },
+        { exposeDefaultValues: true },
+      );
     });
 
-    const hasMore = messages.length > limit;
-    const paginatedMessages = hasMore ? messages.slice(0, limit) : messages;
-    const nextCursor = hasMore
-      ? paginatedMessages[paginatedMessages.length - 1].created_at.toISOString()
-      : null;
-
-    return { messages: paginatedMessages, has_more: hasMore, next_cursor: nextCursor };
+    return { messages, has_more: hasMore, next_cursor: nextCursor };
   }
 }

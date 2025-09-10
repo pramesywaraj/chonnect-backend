@@ -47,9 +47,7 @@ export default class RoomController {
       pagination,
     );
 
-    const data = rooms.map((room) => plainToInstance(RoomResponseDto, room));
-
-    return new CursorPaginationDto(data, has_more, next_cursor);
+    return new CursorPaginationDto(rooms, has_more, next_cursor);
   }
 
   @SuccessMessage('Room detail has been fetched')

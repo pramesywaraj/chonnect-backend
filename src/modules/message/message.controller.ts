@@ -18,7 +18,6 @@ import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
 
 import { AuthRequest } from '../../types/auth.type';
 import { SuccessMessage } from '../../common/decorators';
-import { plainToInstance } from 'class-transformer';
 
 @Controller('message')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -40,22 +39,17 @@ export default class MessageController {
   @Get('/room/:roomId')
   async getMessageOnRoom(
     @Request() req: AuthRequest,
-    @Param('roomId') roomId: string,
+    @Param('roomId') room_id: string,
     @Query() pagination: CursorPaginationQueryParamsDto,
   ): Promise<CursorPaginationDto<MessageResponseDto>> {
-    const userId = req.user.sub;
+    const user_id = req.user.sub;
+
     const { messages, has_more, next_cursor } = await this.messageService.getMessages(
-      roomId,
+      room_id,
+      user_id,
       pagination,
     );
 
-    const data = messages.map((message) => {
-      const result = plainToInstance(MessageResponseDto, message);
-      result.is_user_message = message.sender.id === userId;
-
-      return result;
-    });
-
-    return new CursorPaginationDto(data, has_more, next_cursor);
+    return new CursorPaginationDto(messages, has_more, next_cursor);
   }
 }
