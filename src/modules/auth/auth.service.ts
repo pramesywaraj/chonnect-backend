@@ -101,4 +101,12 @@ export default class AuthService {
   public async logout(userId: string): Promise<void> {
     await this.userService.updateRefreshToken(userId, null);
   }
+
+  public verifyAccessToken(token: string): AuthJwtPayload {
+    try {
+      return this.jwtService.verify(token);
+    } catch {
+      throw new UnauthorizedException('Invalid access token');
+    }
+  }
 }
