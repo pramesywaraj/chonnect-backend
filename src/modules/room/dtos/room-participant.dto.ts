@@ -1,4 +1,4 @@
-import { Expose, Transform } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 import { RoomUser, User } from '../../../entities';
 import { UserRoles } from '../../user/enums/role.enum';
@@ -7,6 +7,7 @@ interface RoomUserWithUser {
   obj: RoomUser & { user: User };
 }
 
+@Exclude()
 export default class RoomParticipantDto {
   @Transform(({ obj }: RoomUserWithUser) => obj.user.id)
   @Expose()

@@ -171,7 +171,7 @@ export default class RoomService {
       };
 
       return plainToInstance(RoomResponseDto, newShapedRoom, {
-        exposeDefaultValues: true,
+        excludeExtraneousValues: true,
       });
     });
 

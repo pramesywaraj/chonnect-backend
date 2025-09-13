@@ -22,13 +22,13 @@ import { plainToInstance } from 'class-transformer';
 import { CursorPaginationDto, CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
 
 @Controller('room')
-@UseInterceptors(ClassSerializerInterceptor)
 @SerializeOptions({ strategy: 'excludeAll' })
 export default class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @SuccessMessage('Room created successfully')
   @Post()
+  @UseInterceptors(ClassSerializerInterceptor)
   create(
     @Request() req: AuthRequest,
     @Body() createRoomRequestDto: CreateRoomRequestDto,
@@ -47,11 +47,12 @@ export default class RoomController {
       pagination,
     );
 
-    return new CursorPaginationDto(rooms, has_more, next_cursor);
+    return new CursorPaginationDto<RoomResponseDto>(rooms, has_more, next_cursor);
   }
 
   @SuccessMessage('Room detail has been fetched')
   @Get(':roomId')
+  @UseInterceptors(ClassSerializerInterceptor)
   async getRoomDetail(
     @Request() req: AuthRequest,
     @Param('roomId') roomId: string,
