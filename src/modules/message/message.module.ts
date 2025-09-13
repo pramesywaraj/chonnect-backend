@@ -7,9 +7,10 @@ import MessageController from './message.controller';
 import MessageService from './message.service';
 import { MessageGateway } from './message.gateway';
 import { MessageStatusService } from './message-status.service';
+import AuthModule from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Room, RoomUser, Message, MessageStatus])],
+  imports: [TypeOrmModule.forFeature([User, Room, RoomUser, Message, MessageStatus]), AuthModule],
   controllers: [MessageController],
   providers: [MessageService, MessageGateway, MessageStatusService],
   exports: [MessageGateway],

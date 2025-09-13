@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { type Repository } from 'typeorm';
-
-import { Message, MessageStatus, Room, RoomUser, User } from '../../entities';
-import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
-
-import { MessageStatusEnum } from '../../enums/message.enum';
-import { CursorPaginationQueryParamsDto } from 'src/dto/pagination.dto';
-import { MessageGateway } from './message.gateway';
 import { plainToInstance } from 'class-transformer';
+
+import { MessageStatusService } from './message-status.service';
+import { MessageGateway } from './message.gateway';
+
+import { Message, Room, RoomUser, User } from '../../entities';
+import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
+import { CursorPaginationQueryParamsDto } from '../../dto/pagination.dto';
 import { RoomResponseDto } from '../room/dtos';
 
 @Injectable()
@@ -16,21 +16,21 @@ export default class MessageService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
-    @InjectRepository(MessageStatus)
-    private readonly messageStatusRepository: Repository<MessageStatus>,
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
     @InjectRepository(RoomUser) private readonly roomUserRepository: Repository<RoomUser>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly messageGateway: MessageGateway,
+
+    private readonly messageStatusService: MessageStatusService,
   ) {}
 
-  public async sendMessage(senderId: string, createMessageRequestDto: CreateMessageRequestDto) {
+  public async sendMessage(sender_id: string, createMessageRequestDto: CreateMessageRequestDto) {
     const { content, room_id } = createMessageRequestDto;
 
     const room = await this.roomRepository.findOneBy({ id: room_id });
     if (!room) throw new NotFoundException('Room not found or available');
 
-    const sender = await this.userRepository.findOneBy({ id: senderId });
+    const sender = await this.userRepository.findOneBy({ id: sender_id });
     if (!sender) throw new NotFoundException('Sender not found or registered');
 
     const message = this.messageRepository.create({
@@ -46,17 +46,13 @@ export default class MessageService {
       relations: ['user', 'room'],
     });
 
-    const statuses = roomUsers
-      .filter((room) => room.user.id !== senderId)
-      .map((room) =>
-        this.messageStatusRepository.create({
-          message,
-          user: room.user,
-          status: MessageStatusEnum.SENT,
-        }),
-      );
-
-    await this.messageStatusRepository.save(statuses);
+    // Create statuses for all participants except sender
+    const participants = roomUsers.map((ru) => ru.user);
+    await this.messageStatusService.createMessageStatus({
+      message,
+      participants,
+      sender_id,
+    });
 
     await this.roomRepository.update(room_id, {
       last_message: message,
@@ -64,7 +60,7 @@ export default class MessageService {
 
     const messageWithRelations = await this.messageRepository.findOne({
       where: { id: message.id },
-      relations: ['sender', 'statuses'],
+      relations: ['sender', 'statuses', 'statuses.user'],
     });
 
     // Need to reconsider the implementation
@@ -78,18 +74,26 @@ export default class MessageService {
       .leftJoinAndSelect('room.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
       .leftJoinAndSelect('room.room_user', 'room_user')
-      .leftJoinAndSelect('room_user.user', 'user')
+      .leftJoinAndSelect('room_user.user', 'participant')
+      .addSelect([
+        'room_user.id',
+        'room_user.role',
+        'room_user.joined_at',
+        'participant.id',
+        'participant.name',
+        'participant.profile_image',
+      ])
       .where('room.id = :room_id', { room_id })
       .getOne();
 
-    const roomResponse = plainToInstance(RoomResponseDto, updatedRoom, {
-      excludeExtraneousValues: true,
-      enableImplicitConversion: true,
-    });
-
     if (updatedRoom) {
+      const roomResponse = plainToInstance(RoomResponseDto, updatedRoom, {
+        excludeExtraneousValues: true,
+      });
+
+      // // exclude the user that request the API
       const participantIds = roomResponse.participants
-        .filter((user) => user.id !== senderId)
+        .filter((user) => user.id !== sender_id)
         .map((user) => user.id);
 
       this.messageGateway.notifyRoomUpdatedToUsers(participantIds, roomResponse);

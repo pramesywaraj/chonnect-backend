@@ -7,6 +7,7 @@ export enum ROOM_SOCKET {
 
 export enum MESSAGE_SOCKET {
   NEW_MESSAGE = 'new_message',
+  MARK_ALL_DELIVERED = 'mark_all_delivered',
 }
 
 export enum GENERAL_SOCKET {
