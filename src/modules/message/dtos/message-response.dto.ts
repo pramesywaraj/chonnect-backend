@@ -14,9 +14,9 @@ class MessageSenderDto {
   profile_image: string;
 }
 
-class MessageStatusDto {
-  @Expose({ name: 'name' })
-  status: MessageStatusEnum;
+export class MessageStatusDto {
+  @Expose({ name: 'status' })
+  name: MessageStatusEnum;
 
   @Expose()
   created_at: Date;
@@ -41,7 +41,7 @@ export default class MessageResponseDto {
 
   @Expose()
   @Type(() => MessageStatusDto)
-  status: MessageStatusDto;
+  statuses: MessageStatusDto[];
 
   @Expose()
   is_user_message: boolean;

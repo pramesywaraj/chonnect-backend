@@ -52,7 +52,6 @@ export default class RoomController {
 
   @SuccessMessage('Room detail has been fetched')
   @Get(':roomId')
-  @UseInterceptors(ClassSerializerInterceptor)
   async getRoomDetail(
     @Request() req: AuthRequest,
     @Param('roomId') roomId: string,
@@ -62,6 +61,6 @@ export default class RoomController {
 
     if (!room) throw new NotFoundException('Room not found');
 
-    return plainToInstance(RoomResponseDto, room);
+    return plainToInstance(RoomResponseDto, room, { excludeExtraneousValues: true });
   }
 }

@@ -112,9 +112,7 @@ export default class MessageService {
     const query = this.messageRepository
       .createQueryBuilder('message')
       .leftJoinAndSelect('message.sender', 'sender')
-      .leftJoin('message.statuses', 'message_status', 'message_status.user.id = :user_id', {
-        user_id,
-      })
+      .leftJoin('message.statuses', 'message_status')
       .addSelect([
         'message_status.id',
         'message_status.status',
@@ -135,14 +133,13 @@ export default class MessageService {
     const nextCursor = hasMore ? items[items.length - 1].created_at.toISOString() : null;
 
     const messages = items.map((message) => {
-      const status = message.statuses?.[0] ?? null;
       return plainToInstance(
         MessageResponseDto,
         {
           id: message.id,
           content: message.content,
           sender: message.sender,
-          status,
+          status: message.statuses ?? [],
           is_user_message: message.sender.id === user_id,
           created_at: message.created_at,
         },

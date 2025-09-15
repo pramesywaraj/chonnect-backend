@@ -154,20 +154,10 @@ export default class RoomService {
       }
 
       const last_message = room.last_message;
-      const last_message_status = last_message?.statuses?.[0] ?? null;
 
       const newShapedRoom = {
         ...room,
-        last_message: last_message
-          ? {
-              id: last_message.id,
-              content: last_message.content,
-              sender: last_message.sender,
-              status: last_message_status,
-              is_user_message: last_message.sender.id === user_id,
-              created_at: last_message.created_at,
-            }
-          : null,
+        last_message,
       };
 
       return plainToInstance(RoomResponseDto, newShapedRoom, {
