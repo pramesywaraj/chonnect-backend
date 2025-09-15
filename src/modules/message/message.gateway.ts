@@ -92,7 +92,6 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   notifyRoomUpdatedToUsers(userIds: string[], room: RoomResponseDto) {
     userIds.forEach((uid) => {
-      console.log('CHECK NOTIFY', uid);
       this.server.to(`user_${uid}`).emit(ROOM_SOCKET.ROOM_UPDATED, room);
     });
   }
@@ -109,5 +108,17 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     await this.messageStatusService.markAllAsDeliveredForUser(userId);
     console.log(`All messages marked as delivered for user: ${userId}`);
+  }
+
+  @SubscribeMessage(MESSAGE_SOCKET.MARK_DELIVERED)
+  async handleMessageAsDelivered(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() message_id: string,
+  ) {
+    const user_id = client.data?.userId;
+
+    if (!user_id || !message_id) return;
+
+    await this.messageStatusService.markMessageAsDelivered({ user_id, message_id });
   }
 }

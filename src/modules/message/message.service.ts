@@ -73,6 +73,7 @@ export default class MessageService {
       .createQueryBuilder('room')
       .leftJoinAndSelect('room.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
+      .leftJoinAndSelect('last_message.statuses', 'message_status')
       .leftJoinAndSelect('room.room_user', 'room_user')
       .leftJoinAndSelect('room_user.user', 'participant')
       .addSelect([
