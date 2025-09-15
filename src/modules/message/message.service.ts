@@ -139,7 +139,7 @@ export default class MessageService {
           id: message.id,
           content: message.content,
           sender: message.sender,
-          status: message.statuses ?? [],
+          statuses: message.statuses ?? [],
           is_user_message: message.sender.id === user_id,
           created_at: message.created_at,
         },

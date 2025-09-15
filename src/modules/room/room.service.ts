@@ -153,14 +153,7 @@ export default class RoomService {
         }
       }
 
-      const last_message = room.last_message;
-
-      const newShapedRoom = {
-        ...room,
-        last_message,
-      };
-
-      return plainToInstance(RoomResponseDto, newShapedRoom, {
+      return plainToInstance(RoomResponseDto, room, {
         excludeExtraneousValues: true,
       });
     });
