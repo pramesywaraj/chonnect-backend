@@ -113,7 +113,9 @@ export default class MessageService {
     const query = this.messageRepository
       .createQueryBuilder('message')
       .leftJoinAndSelect('message.sender', 'sender')
-      .leftJoin('message.statuses', 'message_status')
+      .leftJoin('message.statuses', 'message_status', 'message.sender_id = :user_id', {
+        user_id,
+      })
       .addSelect([
         'message_status.id',
         'message_status.status',
