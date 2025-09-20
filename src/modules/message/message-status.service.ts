@@ -6,8 +6,8 @@ import { MessageStatus } from 'src/entities';
 import { MessageStatusEnum } from 'src/enums/message.enum';
 
 import type {
+  ChangeMessagesAsParams,
   ChangeStatusMarkAsParams,
-  ChangeStatusMarkAsRoomParams,
   CreateMessageStatusesParams,
 } from './types/message-status.type';
 
@@ -52,6 +52,32 @@ export class MessageStatusService {
     );
   }
 
+  async markMessagesAsDelivered(params: ChangeMessagesAsParams) {
+    const { message_ids, user_id } = params;
+
+    return this.messageStatusRepository
+      .createQueryBuilder()
+      .update(MessageStatus)
+      .set({ status: MessageStatusEnum.DELIVERED })
+      .where('user_id = :user_id', { user_id })
+      .andWhere('message_id IN (:...message_ids)', { message_ids })
+      .andWhere('status = :status', { status: MessageStatusEnum.SENT })
+      .execute();
+  }
+
+  async markMessagesAsRead(params: ChangeMessagesAsParams) {
+    const { message_ids, user_id } = params;
+
+    return this.messageStatusRepository
+      .createQueryBuilder()
+      .update(MessageStatus)
+      .set({ status: MessageStatusEnum.READ })
+      .where('user_id = :user_id', { user_id })
+      .andWhere('message_id IN (:...message_ids)', { message_ids })
+      .andWhere('status = :status', { status: MessageStatusEnum.DELIVERED })
+      .execute();
+  }
+
   async markAllAsDeliveredForUser(user_id: string) {
     return this.messageStatusRepository
       .createQueryBuilder()
@@ -59,36 +85,6 @@ export class MessageStatusService {
       .set({ status: MessageStatusEnum.DELIVERED })
       .where('user_id = :user_id', { user_id })
       .andWhere('status = :status', { status: MessageStatusEnum.SENT })
-      .execute();
-  }
-
-  async markRoomMessagesAsDelivered(params: ChangeStatusMarkAsRoomParams) {
-    const { user_id, room_id } = params;
-
-    return this.messageStatusRepository
-      .createQueryBuilder('message_status')
-      .innerJoin('message_status.message', 'message')
-      .update()
-      .set({ status: MessageStatusEnum.DELIVERED })
-      .where('message.user_id = :user_id', { user_id })
-      .andWhere('message.status = :status', { status: MessageStatusEnum.SENT })
-      .andWhere('message.room_id = :room_id', { room_id })
-      .execute();
-  }
-
-  async markRoomMessagesAsRead(params: ChangeStatusMarkAsRoomParams) {
-    const { user_id, room_id } = params;
-
-    return this.messageStatusRepository
-      .createQueryBuilder('message_status')
-      .innerJoin('message_status.message', 'message')
-      .update()
-      .set({ status: MessageStatusEnum.READ, read_at: () => 'NOW()' })
-      .where('message.user_id = :user_id', { user_id })
-      .andWhere('message.status IN (:...status)', {
-        status: [MessageStatusEnum.SENT, MessageStatusEnum.DELIVERED],
-      })
-      .andWhere('message.room_id = :room_id', { room_id })
       .execute();
   }
 }

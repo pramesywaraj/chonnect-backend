@@ -11,7 +11,7 @@ export interface ChangeStatusMarkAsParams {
   user_id: string;
 }
 
-export interface ChangeStatusMarkAsRoomParams {
+export interface ChangeMessagesAsParams {
+  message_ids: string[];
   user_id: string;
-  room_id: string;
 }

@@ -18,12 +18,17 @@ import { CreateMessageRequestDto, MessageResponseDto } from './dtos';
 
 import { AuthRequest } from '../../types/auth.type';
 import { SuccessMessage } from '../../common/decorators';
+import { MarkMessagesAsRequest } from './dtos/message-status-request.dto';
+import { MessageStatusService } from './message-status.service';
 
 @Controller('message')
 @UseInterceptors(ClassSerializerInterceptor)
 @SerializeOptions({ strategy: 'excludeAll' })
 export default class MessageController {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly messageStatusService: MessageStatusService,
+  ) {}
 
   @SuccessMessage('Message has been sent')
   @Post()
@@ -51,5 +56,37 @@ export default class MessageController {
     );
 
     return new CursorPaginationDto(messages, has_more, next_cursor);
+  }
+
+  @SuccessMessage('Messages marked as delivered')
+  @Post('/status/mark-delivered')
+  async markMessageAsDelivered(
+    @Request() req: AuthRequest,
+    @Body() markMessageAsDeliveredRequest: MarkMessagesAsRequest,
+  ) {
+    const user_id = req.user.sub;
+
+    await this.messageStatusService.markMessagesAsDelivered({
+      message_ids: markMessageAsDeliveredRequest.message_ids,
+      user_id,
+    });
+
+    return null;
+  }
+
+  @SuccessMessage('Messages marked as readed')
+  @Post('/status/mark-read')
+  async markMessagesAsRead(
+    @Request() req: AuthRequest,
+    @Body() markMessagesAsReadRequest: MarkMessagesAsRequest,
+  ) {
+    const user_id = req.user.sub;
+
+    await this.messageStatusService.markMessagesAsDelivered({
+      message_ids: markMessagesAsReadRequest.message_ids,
+      user_id,
+    });
+
+    return null;
   }
 }
